@@ -68,6 +68,8 @@ export default function TransactionDialog({ open, onOpenChange, transaction, typ
         amount: parseFloat(formData.amount),
         date: new Date(formData.date).toISOString(),
         category_id: formData.category_id || null,
+        card_id: formData.payment_method === 'credit_card' ? formData.card_id || null : null,
+        installments: formData.payment_method === 'credit_card' ? parseInt(formData.installments) : 1,
       };
 
       if (transaction?.id) {
