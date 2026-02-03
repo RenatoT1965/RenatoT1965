@@ -171,10 +171,10 @@ export default function Cards() {
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-sm font-medium text-slate-700">Fatura Atual</span>
                         <span className="text-lg font-bold text-slate-900">
-                          {formatCurrency(invoice.total_amount)}
+                          {formatCurrency(invoice.used_amount || 0)}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-600">{invoice.total_transactions} transações</p>
+                      <p className="text-xs text-slate-600">{invoice.total_transactions || 0} transações</p>
                     </div>
                   </div>
 

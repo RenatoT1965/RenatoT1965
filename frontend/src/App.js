@@ -75,24 +75,30 @@ function Navigation() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 space-y-2" data-testid="mobile-menu">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                data-testid={`mobile-nav-${item.label.toLowerCase()}`}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
-                  location.pathname === item.path
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'
-                }`}
-              >
-                <item.icon className="w-5 h-5" />
-                {item.label}
-              </Link>
-            ))}
-          </div>
+          <>
+            <div 
+              className="fixed inset-0 bg-black/20 z-40 md:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <div className="md:hidden py-4 space-y-2 relative z-50 bg-white" data-testid="mobile-menu">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  data-testid={`mobile-nav-${item.label.toLowerCase()}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors relative z-50 ${
+                    location.pathname === item.path
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'
+                  }`}
+                >
+                  <item.icon className="w-5 h-5" />
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </nav>

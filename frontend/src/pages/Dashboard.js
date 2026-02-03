@@ -163,6 +163,8 @@ export default function Dashboard() {
         </div>
       )}
 
+      <UsageIndicator />
+
       {summary?.recent_transactions && summary.recent_transactions.length > 0 && (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-border">
           <h2 className="text-2xl font-heading font-semibold mb-6">Transações Recentes</h2>
