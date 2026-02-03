@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import json
 
 class OrganizzeAPITester:
-    def __init__(self, base_url="https://organizze-app.preview.emergentagent.com"):
+    def __init__(self, base_url="https://moneyhub-46.preview.emergentagent.com"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
