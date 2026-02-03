@@ -37,7 +37,7 @@ function Navigation() {
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
               <span className="text-white font-heading font-bold text-lg">O</span>
             </div>
-            <h1 className="text-xl font-heading font-bold text-foreground">Organizze</h1>
+            <h1 className="text-xl font-heading font-bold text-foreground">FinanceFlow</h1>
           </div>
 
           <div className="hidden md:flex items-center gap-2">
