@@ -31,26 +31,26 @@ Aplicativo de gerenciamento de finanças pessoais com funcionalidades de:
 - [x] **Autenticação JWT** (registro, login, verificação de token)
 - [x] **Integração Stripe** para pagamentos
 - [x] **Planos de assinatura** (Teste, Básico R$15, Premium R$35.90)
-
-### Em Progresso 🔄
-- [ ] Integração completa de autenticação no frontend
-- [ ] Fluxo completo de upgrade de plano com Stripe
+- [x] **Tela de Login/Registro** com validação
+- [x] **Página de Perfil** do usuário com estatísticas
+- [x] **Proteção de rotas** - redirecionamento automático para login
 
 ### Backlog P1
-- [ ] Página de perfil do usuário
 - [ ] Sincronização automática de cartões (Plaid/Belvo)
 - [ ] Categorização automática por IA
+- [ ] Edição de perfil (nome, senha)
 
 ### Backlog P2/P3
 - [ ] Página detalhada de fatura do cartão
 - [ ] Notificações push (vencimento de faturas)
 - [ ] Multi-idioma
+- [ ] Tela de onboarding para novos usuários
 
 ## Technical Architecture
 ```
 /app
 ├── backend/
-│   ├── server.py          # FastAPI main app (1200+ lines)
+│   ├── server.py          # FastAPI main app
 │   ├── auth.py            # JWT authentication
 │   ├── payments.py        # Stripe integration
 │   ├── ai_assistant.py    # Gemini AI chat
@@ -58,9 +58,14 @@ Aplicativo de gerenciamento de finanças pessoais com funcionalidades de:
 │   └── plan_manager.py    # Subscription limits
 ├── frontend/
 │   └── src/
-│       ├── App.js         # Router & Navigation
-│       ├── pages/         # Dashboard, Cards, Pricing, etc.
-│       └── components/    # UI components
+│       ├── App.js         # Router & Navigation (with auth)
+│       ├── contexts/
+│       │   └── AuthContext.js  # Auth state management
+│       ├── pages/
+│       │   ├── Auth.js    # Login/Register
+│       │   ├── Profile.js # User profile
+│       │   └── ...
+│       └── components/
 ```
 
 ## Tech Stack
@@ -69,11 +74,12 @@ Aplicativo de gerenciamento de finanças pessoais com funcionalidades de:
 - **Database**: MongoDB
 - **AI**: Gemini 3 Flash (emergentintegrations)
 - **Payments**: Stripe (emergentintegrations)
+- **Auth**: JWT (PyJWT)
 
 ## Key API Endpoints
 - `POST /api/auth/register` - Registro de usuário
 - `POST /api/auth/login` - Login
-- `GET /api/auth/me` - Usuário atual
+- `GET /api/auth/me` - Usuário atual (requires Bearer token)
 - `POST /api/payments/checkout` - Criar sessão Stripe
 - `GET /api/payments/status/{session_id}` - Status do pagamento
 - `GET /api/plans/current` - Plano do usuário
@@ -90,10 +96,14 @@ Aplicativo de gerenciamento de finanças pessoais com funcionalidades de:
 - `payment_transactions` - Histórico de pagamentos
 - `notifications` - Notificações
 
-## Bugs Corrigidos (Sessão Atual)
-1. ✅ Menu mobile - link Dashboard não clicável (z-index fix)
-2. ✅ Cartões mostrando "R$ NaN" (used_amount || 0)
-3. ✅ UsageIndicator não renderizado no Dashboard
+## Features Completed This Session
+1. ✅ Tela de Login com validação
+2. ✅ Tela de Registro com confirmação de senha
+3. ✅ AuthContext para gerenciamento de estado
+4. ✅ Proteção de rotas (redirect para /auth)
+5. ✅ Página de Perfil completa
+6. ✅ Avatar do usuário na navegação
+7. ✅ Botão de logout
 
 ## Integrações de Terceiros
 - **Gemini 3 Flash** - Emergent LLM Key ✅
@@ -102,3 +112,4 @@ Aplicativo de gerenciamento de finanças pessoais com funcionalidades de:
 ## Test Credentials
 - Email: teste@financeflow.com
 - Password: senha123
+
