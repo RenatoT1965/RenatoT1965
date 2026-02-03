@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { API, axios, toast } from '../App';
+import { API, axios, toast } from '../config';
 import { Button } from '../components/ui/button';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import BudgetDialog from '../components/BudgetDialog';
