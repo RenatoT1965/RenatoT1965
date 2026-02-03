@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { API, axios, toast } from '../App';
+import { API, axios, toast } from '../config';
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
