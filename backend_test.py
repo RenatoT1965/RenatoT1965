@@ -8,9 +8,13 @@ class OrganizzeAPITester:
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
-        self.category_ids = []
-        self.transaction_ids = []
-        self.budget_ids = []
+        self.created_ids = {
+            'categories': [],
+            'cards': [],
+            'transactions': [],
+            'budgets': [],
+            'notifications': []
+        }
 
     def run_test(self, name, method, endpoint, expected_status, data=None, params=None):
         """Run a single API test"""
