@@ -198,7 +198,7 @@ export default function Transactions() {
                     <td className="p-4 text-sm">{getCategoryName(transaction.category_id)}</td>
                     <td className="p-4 text-sm">{paymentMethodLabels[transaction.payment_method]}</td>
                     <td className={`p-4 text-right font-semibold ${
-                      transaction.type === 'income' ? 'text-accent' : 'text-destructive'
+                      transaction.type === 'income' ? 'text-emerald-700' : 'text-red-700'
                     }`}>
                       {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                     </td>
