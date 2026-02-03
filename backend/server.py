@@ -1000,6 +1000,79 @@ async def update_settings(settings: Settings):
     )
     return settings
 
+# AI Assistant Endpoints
+from ai_assistant import FinancialAssistant
+
+assistant = FinancialAssistant(db)
+
+class ChatMessage(BaseModel):
+    message: str
+    include_context: bool = True
+
+class ChatResponse(BaseModel):
+    response: str
+    timestamp: datetime
+
+@api_router.post("/ai/chat", response_model=ChatResponse)
+async def ai_chat(chat_msg: ChatMessage):
+    """Chat with AI financial assistant"""
+    try:
+        response = await assistant.chat_with_assistant(
+            user_id="default_user",
+            message=chat_msg.message,
+            include_context=chat_msg.include_context
+        )
+        return ChatResponse(
+            response=response,
+            timestamp=datetime.now(timezone.utc)
+        )
+    except Exception as e:
+        logger.error(f"AI Chat error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI error: {str(e)}")
+
+@api_router.get("/ai/insights")
+async def get_ai_insights():
+    """Get AI-generated financial insights"""
+    try:
+        insights = await assistant.generate_insights()
+        return {"insights": insights}
+    except Exception as e:
+        logger.error(f"AI Insights error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI error: {str(e)}")
+
+@api_router.get("/ai/analysis")
+async def get_spending_analysis():
+    """Get AI spending pattern analysis"""
+    try:
+        analysis = await assistant.analyze_spending_patterns()
+        return analysis
+    except Exception as e:
+        logger.error(f"AI Analysis error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI error: {str(e)}")
+
+@api_router.post("/ai/suggest-category")
+async def suggest_transaction_category(description: str, amount: float):
+    """Suggest category for transaction using AI"""
+    try:
+        category_id = await assistant.suggest_category(description, amount)
+        return {"suggested_category_id": category_id}
+    except Exception as e:
+        logger.error(f"AI Category suggestion error: {str(e)}")
+        return {"suggested_category_id": None}
+
+@api_router.get("/ai/chat-history")
+async def get_chat_history(limit: int = 20):
+    """Get chat history"""
+    history = await db.ai_chats.find({
+        "user_id": "default_user"
+    }).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    for h in history:
+        if isinstance(h['created_at'], str):
+            h['created_at'] = datetime.fromisoformat(h['created_at'])
+    
+    return {"history": history}
+
 app.include_router(api_router)
 
 app.add_middleware(
