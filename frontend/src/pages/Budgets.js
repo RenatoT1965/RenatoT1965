@@ -172,13 +172,6 @@ export default function Budgets() {
                   <Progress
                     value={Math.min(percentage, 100)}
                     className="h-3"
-                    indicatorClassName={
-                      status?.exceeded
-                        ? 'bg-destructive'
-                        : percentage >= 80
-                        ? 'bg-amber-500'
-                        : 'bg-accent'
-                    }
                   />
 
                   <div className="flex justify-between items-center text-sm">
