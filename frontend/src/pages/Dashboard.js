@@ -16,7 +16,17 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadDashboard();
+    loadAIInsights();
   }, []);
+
+  const loadAIInsights = async () => {
+    try {
+      const response = await axios.get(`${API}/ai/insights`);
+      setAiInsights(response.data.insights || []);
+    } catch (error) {
+      console.error('Error loading AI insights:', error);
+    }
+  };
 
   const loadDashboard = async () => {
     try {
