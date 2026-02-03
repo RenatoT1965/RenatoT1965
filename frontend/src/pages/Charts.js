@@ -7,10 +7,13 @@ import { Download } from 'lucide-react';
 
 export default function Charts() {
   const [chartData, setChartData] = useState([]);
+  const [pieData, setPieData] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chartType, setChartType] = useState('bar');
   const [granularity, setGranularity] = useState('day');
+  const [pieType, setPieType] = useState('expenses');
+  const [pieGroupBy, setPieGroupBy] = useState('category');
   const [filters, setFilters] = useState({
     category_id: '',
     payment_method: '',
