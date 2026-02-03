@@ -1,18 +1,13 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import axios from 'axios';
-import { Toaster, toast } from 'sonner';
+import { Toaster } from 'sonner';
+import { API, axios } from './config';
 import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import Budgets from './pages/Budgets';
 import Charts from './pages/Charts';
 import { LayoutDashboard, Receipt, Target, BarChart3, Menu, X } from 'lucide-react';
 import './App.css';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-export { API, axios, toast };
 
 function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
