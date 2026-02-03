@@ -117,7 +117,7 @@ export default function Cards() {
                 data-testid={`card-${card.id}`}
                 className="bg-white rounded-2xl shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow"
               >
-                <div className={`${getBrandColor(card.brand)} p-6 text-white`}>
+                <div className={`${getBrandColor(card.name)} p-6 text-white`}>
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <p className="text-sm opacity-90">Cartão de Crédito</p>
