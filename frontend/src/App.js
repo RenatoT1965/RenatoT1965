@@ -132,6 +132,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/transactions" element={<Transactions />} />
+            <Route path="/import" element={<BankImport />} />
             <Route path="/cards" element={<Cards />} />
             <Route path="/budgets" element={<Budgets />} />
             <Route path="/predictions" element={<Predictions />} />
