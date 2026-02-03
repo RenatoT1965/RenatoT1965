@@ -34,17 +34,19 @@ Aplicativo de gerenciamento de finanças pessoais com funcionalidades de:
 - [x] **Tela de Login/Registro** com validação
 - [x] **Página de Perfil** do usuário com estatísticas
 - [x] **Proteção de rotas** - redirecionamento automático para login
+- [x] **Tela de Onboarding** para novos usuários (4 passos)
+- [x] **Edição de Perfil** (nome e senha)
 
 ### Backlog P1
 - [ ] Sincronização automática de cartões (Plaid/Belvo)
 - [ ] Categorização automática por IA
-- [ ] Edição de perfil (nome, senha)
+- [ ] Notificações por email
 
 ### Backlog P2/P3
 - [ ] Página detalhada de fatura do cartão
 - [ ] Notificações push (vencimento de faturas)
 - [ ] Multi-idioma
-- [ ] Tela de onboarding para novos usuários
+- [ ] Temas (dark mode)
 
 ## Technical Architecture
 ```
@@ -62,8 +64,10 @@ Aplicativo de gerenciamento de finanças pessoais com funcionalidades de:
 │       ├── contexts/
 │       │   └── AuthContext.js  # Auth state management
 │       ├── pages/
-│       │   ├── Auth.js    # Login/Register
-│       │   ├── Profile.js # User profile
+│       │   ├── Auth.js        # Login/Register
+│       │   ├── Profile.js     # User profile
+│       │   ├── EditProfile.js # Edit name/password
+│       │   ├── Onboarding.js  # New user setup
 │       │   └── ...
 │       └── components/
 ```
@@ -80,36 +84,23 @@ Aplicativo de gerenciamento de finanças pessoais com funcionalidades de:
 - `POST /api/auth/register` - Registro de usuário
 - `POST /api/auth/login` - Login
 - `GET /api/auth/me` - Usuário atual (requires Bearer token)
+- `PUT /api/auth/profile` - Atualizar nome
+- `PUT /api/auth/password` - Alterar senha
 - `POST /api/payments/checkout` - Criar sessão Stripe
 - `GET /api/payments/status/{session_id}` - Status do pagamento
 - `GET /api/plans/current` - Plano do usuário
-- `POST /api/transactions` - Nova transação
-- `POST /api/ai/chat` - Chat com IA
 
-## Database Collections
-- `users` - Usuários e autenticação
-- `transactions` - Transações financeiras
-- `categories` - Categorias
-- `budgets` - Orçamentos/metas
-- `cards` - Cartões de crédito
-- `user_plans` - Planos de assinatura
-- `payment_transactions` - Histórico de pagamentos
-- `notifications` - Notificações
-
-## Features Completed This Session
-1. ✅ Tela de Login com validação
-2. ✅ Tela de Registro com confirmação de senha
-3. ✅ AuthContext para gerenciamento de estado
-4. ✅ Proteção de rotas (redirect para /auth)
-5. ✅ Página de Perfil completa
-6. ✅ Avatar do usuário na navegação
-7. ✅ Botão de logout
-
-## Integrações de Terceiros
-- **Gemini 3 Flash** - Emergent LLM Key ✅
-- **Stripe** - Test key sk_test_emergent ✅
+## Onboarding Flow
+1. **Welcome** - Boas-vindas e apresentação das funcionalidades
+2. **Card** - Adicionar primeiro cartão (opcional)
+3. **Budget** - Definir meta de gastos mensais (opcional)
+4. **Complete** - Confirmação e próximos passos
 
 ## Test Credentials
 - Email: teste@financeflow.com
 - Password: senha123
+
+## Integrações de Terceiros
+- **Gemini 3 Flash** - Emergent LLM Key ✅
+- **Stripe** - Test key sk_test_emergent ✅
 
