@@ -14,7 +14,7 @@ Aplicativo de gerenciamento de finanças pessoais com funcionalidades de:
 ## User Personas
 - **Usuário Principal**: Brasileiro que quer controlar suas finanças pessoais
 - **Idioma**: Português (Brasil)
-- **Dispositivos**: Desktop, Mobile (responsive)
+- **Dispositivos**: Desktop, Mobile (responsive), App Nativo (iOS/Android)
 
 ## Core Requirements
 ### Implementado ✅
@@ -36,6 +36,41 @@ Aplicativo de gerenciamento de finanças pessoais com funcionalidades de:
 - [x] **Proteção de rotas** - redirecionamento automático para login
 - [x] **Tela de Onboarding** para novos usuários (4 passos)
 - [x] **Edição de Perfil** (nome e senha)
+- [x] **App Mobile Nativo** (React Native/Expo) para iOS e Android
+
+## Mobile App (/app/mobile)
+### Telas Implementadas
+- **AuthScreen** - Login e Registro
+- **DashboardScreen** - Resumo financeiro, ações rápidas, metas
+- **TransactionsScreen** - Lista de transações com filtros
+- **CardsScreen** - Cartões de crédito com cores das bandeiras
+- **AIAssistantScreen** - Chat com IA (Gemini)
+- **ProfileScreen** - Perfil, uso do plano, logout
+
+### Como Testar o App Mobile
+1. Instale o app **Expo Go** no celular:
+   - [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)
+   - [iOS](https://apps.apple.com/app/expo-go/id982107779)
+
+2. No terminal, execute:
+   ```bash
+   cd /app/mobile
+   npx expo start
+   ```
+
+3. Escaneie o QR Code com o Expo Go
+
+### Como Publicar nas Lojas
+1. Criar conta de desenvolvedor:
+   - Google Play: US$ 25 (única vez)
+   - Apple Developer: US$ 99/ano
+
+2. Gerar build de produção:
+   ```bash
+   npx eas build --platform all
+   ```
+
+3. Submeter para revisão nas lojas
 
 ### Backlog P1
 - [ ] Sincronização automática de cartões (Plaid/Belvo)
