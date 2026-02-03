@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { API, axios } from './config';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import Budgets from './pages/Budgets';
@@ -11,14 +11,37 @@ import Predictions from './pages/Predictions';
 import AIAssistant from './pages/AIAssistant';
 import BankImport from './pages/BankImport';
 import Pricing from './pages/Pricing';
+import Auth from './pages/Auth';
+import Profile from './pages/Profile';
 import NotificationBell from './components/NotificationBell';
 import PlanBadge from './components/PlanBadge';
-import { LayoutDashboard, Receipt, Target, BarChart3, CreditCard, TrendingUp, Sparkles, Upload, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Receipt, Target, BarChart3, CreditCard, TrendingUp, Sparkles, Upload, Menu, X, User, LogOut } from 'lucide-react';
 import './App.css';
+
+// Protected Route wrapper
+function ProtectedRoute({ children }) {
+  const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  return children;
+}
 
 function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const navItems = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -37,7 +60,7 @@ function Navigation() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <span className="text-white font-heading font-bold text-lg">O</span>
+              <span className="text-white font-heading font-bold text-lg">F</span>
             </div>
             <h1 className="text-xl font-heading font-bold text-foreground">FinanceFlow</h1>
           </div>
@@ -63,6 +86,15 @@ function Navigation() {
           <div className="hidden md:flex items-center gap-2">
             <PlanBadge />
             <NotificationBell />
+            <Link
+              to="/profile"
+              data-testid="profile-link"
+              className="flex items-center gap-2 px-3 py-2 rounded-full text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center text-white text-sm font-medium">
+                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
+            </Link>
           </div>
 
           <button
@@ -97,6 +129,17 @@ function Navigation() {
                   {item.label}
                 </Link>
               ))}
+              <div className="pt-2 border-t border-slate-200">
+                <Link
+                  to="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-slate-700 hover:bg-slate-100"
+                  data-testid="mobile-nav-profile"
+                >
+                  <User className="w-5 h-5" />
+                  Meu Perfil
+                </Link>
+              </div>
             </div>
           </>
         )}
@@ -105,55 +148,82 @@ function Navigation() {
   );
 }
 
-function App() {
-  useEffect(() => {
-    const initializeData = async () => {
-      try {
-        const categoriesResponse = await axios.get(`${API}/categories`);
-        if (categoriesResponse.data.length === 0) {
-          const defaultCategories = [
-            { name: 'Alimentação', color: '#EF4444' },
-            { name: 'Transporte', color: '#F59E0B' },
-            { name: 'Moradia', color: '#3B82F6' },
-            { name: 'Lazer', color: '#8B5CF6' },
-            { name: 'Saúde', color: '#10B981' },
-            { name: 'Educação', color: '#06B6D4' },
-            { name: 'Outros', color: '#6B7280' },
-          ];
-          
-          for (const cat of defaultCategories) {
-            await axios.post(`${API}/categories`, cat);
-          }
-        }
-      } catch (error) {
-        console.error('Error initializing data:', error);
-      }
-    };
+function AppContent() {
+  const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
 
-    initializeData();
-  }, []);
+  // Show loading spinner while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  // Auth page doesn't need navigation
+  if (location.pathname === '/auth') {
+    return <Auth />;
+  }
+
+  // Redirect to auth if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
 
   return (
     <div className="App min-h-screen bg-slate-50">
-      <BrowserRouter>
-        <Navigation />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/transactions" element={<Transactions />} />
-            <Route path="/import" element={<BankImport />} />
-            <Route path="/cards" element={<Cards />} />
-            <Route path="/budgets" element={<Budgets />} />
-            <Route path="/predictions" element={<Predictions />} />
-            <Route path="/charts" element={<Charts />} />
-            <Route path="/ai-assistant" element={<AIAssistant />} />
-            <Route path="/pricing" element={<Pricing />} />
-          </Routes>
-        </main>
-        <Toaster position="top-right" richColors />
-      </BrowserRouter>
+      <Navigation />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/transactions" element={<Transactions />} />
+          <Route path="/import" element={<BankImport />} />
+          <Route path="/cards" element={<Cards />} />
+          <Route path="/budgets" element={<Budgets />} />
+          <Route path="/predictions" element={<Predictions />} />
+          <Route path="/charts" element={<Charts />} />
+          <Route path="/ai-assistant" element={<AIAssistant />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/profile" element={<Profile />} />
+        </Routes>
+      </main>
+      <Toaster position="top-right" richColors />
     </div>
   );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/*" element={<AppContent />} />
+        </Routes>
+        <Toaster position="top-right" richColors />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
+
+// Auth page with redirect if already logged in
+function AuthPage() {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
+  
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <Auth />;
 }
 
 export default App;
