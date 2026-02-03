@@ -1,0 +1,182 @@
+{
+  "design_system": {
+    "identity": {
+      "name": "Organizze",
+      "archetype": "Organic & Earthy (Modernized)",
+      "core_values": ["Clarity", "Trust", "Growth", "Simplicity"],
+      "tone": "Professional yet approachable, encouraging, organized"
+    },
+    "typography": {
+      "font_family": {
+        "headings": "Outfit, sans-serif",
+        "body": "Public Sans, sans-serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "scale": {
+        "h1": "text-4xl md:text-5xl font-bold tracking-tight",
+        "h2": "text-3xl md:text-4xl font-semibold tracking-tight",
+        "h3": "text-2xl md:text-3xl font-semibold",
+        "h4": "text-xl md:text-2xl font-medium",
+        "body_lg": "text-lg leading-relaxed",
+        "body_base": "text-base leading-relaxed",
+        "caption": "text-sm text-muted-foreground",
+        "tiny": "text-xs uppercase tracking-wider font-semibold"
+      },
+      "weights": {
+        "light": 300,
+        "regular": 400,
+        "medium": 500,
+        "semibold": 600,
+        "bold": 700
+      }
+    },
+    "colors": {
+      "palette": {
+        "primary": {
+          "DEFAULT": "#065F46",
+          "foreground": "#FFFFFF",
+          "description": "Deep Emerald - Trust and Wealth"
+        },
+        "secondary": {
+          "DEFAULT": "#D1FAE5",
+          "foreground": "#064E3B",
+          "description": "Soft Mint - Backgrounds and subtle accents"
+        },
+        "accent": {
+          "DEFAULT": "#10B981",
+          "foreground": "#FFFFFF",
+          "description": "Vibrant Green - Success and CTAs"
+        },
+        "destructive": {
+          "DEFAULT": "#EF4444",
+          "foreground": "#FFFFFF",
+          "description": "Red - Expenses and Alerts"
+        },
+        "background": {
+          "light": "#F8FAFC",
+          "dark": "#020617"
+        },
+        "surface": {
+          "light": "#FFFFFF",
+          "dark": "#0F172A"
+        },
+        "text": {
+          "primary": "#0F172A",
+          "secondary": "#64748B",
+          "muted": "#94A3B8"
+        }
+      },
+      "gradients": {
+        "primary": "bg-gradient-to-br from-[#065F46] to-[#047857]",
+        "surface_glass": "bg-white/80 backdrop-blur-xl border border-white/20 shadow-sm"
+      }
+    },
+    "layout": {
+      "spacing": {
+        "container_padding": "p-4 md:p-8 lg:p-12",
+        "section_gap": "gap-8 md:gap-12",
+        "component_gap": "gap-4"
+      },
+      "grid": {
+        "dashboard": "grid grid-cols-1 md:grid-cols-12 gap-6",
+        "card_grid": "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+      },
+      "radius": {
+        "default": "rounded-xl",
+        "card": "rounded-2xl",
+        "button": "rounded-full"
+      }
+    },
+    "components": {
+      "buttons": {
+        "primary": "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 rounded-full px-8 py-6 font-medium",
+        "secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-full px-6 py-4 font-medium",
+        "ghost": "hover:bg-accent/10 hover:text-accent transition-colors rounded-lg px-4 py-2"
+      },
+      "cards": {
+        "default": "bg-card text-card-foreground rounded-2xl border border-border/50 shadow-sm hover:shadow-md transition-all duration-300",
+        "glass": "bg-white/70 dark:bg-black/40 backdrop-blur-lg border border-white/20 shadow-lg"
+      },
+      "inputs": {
+        "default": "h-12 rounded-lg border-input bg-background px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+      }
+    },
+    "visual_enhancers": {
+      "shadows": {
+        "soft": "shadow-[0_8px_30px_rgb(0,0,0,0.04)]",
+        "glow": "shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+      },
+      "textures": {
+        "noise": "bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"
+      },
+      "animations": {
+        "hover_lift": "hover:-translate-y-1 transition-transform duration-300 ease-out",
+        "fade_in": "animate-in fade-in duration-500",
+        "slide_up": "animate-in slide-in-from-bottom-4 duration-500"
+      }
+    },
+    "assets": {
+      "images": {
+        "user_profile": {
+          "url": "https://images.unsplash.com/photo-1749700332038-640b00de758c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTV8MHwxfHNlYXJjaHwxfHxoYXBweSUyMHBlcnNvbiUyMHBvcnRyYWl0fGVufDB8fHx8MTc3MDEyMDY5NHww&ixlib=rb-4.1.0&q=85",
+          "alt": "User Profile Picture",
+          "category": "avatar"
+        },
+        "goal_house": {
+          "url": "https://images.unsplash.com/photo-1607756844432-f4849943f199?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAxODF8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBtaW5pbWFsaXN0JTIwaG91c2UlMjBhcmNoaXRlY3R1cmV8ZW58MHx8fHwxNzcwMTIwNjk1fDA&ixlib=rb-4.1.0&q=85",
+          "alt": "Modern House Goal",
+          "category": "goal"
+        },
+        "goal_travel": {
+          "url": "https://images.unsplash.com/photo-1631535152690-ba1a85229136?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODF8MHwxfHNlYXJjaHwxfHx0cm9waWNhbCUyMGJlYWNoJTIwdHJhdmVsfGVufDB8fHx8MTc3MDEyMDY5Nnww&ixlib=rb-4.1.0&q=85",
+          "alt": "Tropical Beach Vacation Goal",
+          "category": "goal"
+        },
+        "goal_car": {
+          "url": "https://images.unsplash.com/photo-1618480483701-c31ac5590db4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBjYXIlMjBzaWRlJTIwdmlld3xlbnwwfHx8fDE3NzAxMjA3MDF8MA&ixlib=rb-4.1.0&q=85",
+          "alt": "Luxury Car Goal",
+          "category": "goal"
+        }
+      },
+      "icons": {
+        "library": "lucide-react",
+        "style": "stroke-width-1.5"
+      }
+    },
+    "charts": {
+      "library": "recharts",
+      "palette": ["#065F46", "#10B981", "#34D399", "#6EE7B7", "#A7F3D0"],
+      "style": "Clean, minimal grid lines, rounded bars, smooth curves for line charts"
+    }
+  },
+  "instructions_to_main_agent": {
+    "general": [
+      "Implement a 'Mobile-First' approach. Ensure all grids collapse to 1 column on mobile.",
+      "Use the 'Deep Emerald' primary color for main actions and branding.",
+      "Use 'Sonner' for all toast notifications (success, error, alerts).",
+      "Ensure all financial values are formatted with the Brazilian Real (R$) currency symbol and locale (pt-BR).",
+      "Use 'Outfit' font for all headings and 'Public Sans' for body text. Import them via Google Fonts in index.css.",
+      "Do NOT use gradients for text. Keep text high-contrast and readable.",
+      "For the Dashboard, use a 'Bento Grid' layout: Total Balance (Large), Quick Actions (Medium), Recent Transactions (Tall/List).",
+      "Implement 'Goals' as cards with progress bars. Use the provided images for specific goal examples.",
+      "Ensure the 'Export to Excel' button is prominent but secondary to daily actions."
+    ],
+    "accessibility": [
+      "Ensure all text meets APCA contrast standards.",
+      "Add aria-labels to all icon-only buttons.",
+      "Support keyboard navigation for all interactive elements.",
+      "Use semantic HTML (main, section, article, nav)."
+    ],
+    "testing": [
+      "Add 'data-testid' to all interactive elements (buttons, inputs, cards).",
+      "Format: 'page-section-element-action' (e.g., 'dashboard-balance-card-view-details')."
+    ]
+  },
+  "universal_guidelines": [
+    "Avoid 'AI Slop': Do not use generic centered layouts or default blue colors.",
+    "Create depth: Use layered shadows and subtle borders.",
+    "Micro-interactions: Add hover states to all cards and buttons.",
+    "No generic gradients: Use solid colors or subtle noise textures.",
+    "Spacing: Use generous padding (p-6, p-8) inside cards."
+  ]
+}
