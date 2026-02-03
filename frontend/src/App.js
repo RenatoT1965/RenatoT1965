@@ -68,11 +68,12 @@ function Navigation() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 space-y-2">
+          <div className="md:hidden py-4 space-y-2" data-testid="mobile-menu">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
+                data-testid={`mobile-nav-${item.label.toLowerCase()}`}
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
                   location.pathname === item.path
