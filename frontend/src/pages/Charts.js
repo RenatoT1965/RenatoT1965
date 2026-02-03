@@ -45,6 +45,18 @@ export default function Charts() {
     }
   };
 
+  const loadPieData = async () => {
+    try {
+      const response = await axios.get(`${API}/reports/pie-chart`, {
+        params: { type: pieType, group_by: pieGroupBy },
+      });
+      setPieData(response.data.data);
+    } catch (error) {
+      console.error('Error loading pie chart data:', error);
+      toast.error('Erro ao carregar gráfico de pizza');
+    }
+  };
+
   const handleExport = async () => {
     try {
       const response = await axios.get(`${API}/export/excel`, {
