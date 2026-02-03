@@ -4,6 +4,7 @@ import { TrendingUp, TrendingDown, Wallet, Plus, AlertCircle } from 'lucide-reac
 import { Progress } from '../components/ui/progress';
 import { Button } from '../components/ui/button';
 import TransactionDialog from '../components/TransactionDialog';
+import UsageIndicator from '../components/UsageIndicator';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
