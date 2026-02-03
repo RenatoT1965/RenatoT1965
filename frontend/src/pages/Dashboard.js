@@ -176,7 +176,6 @@ export default function Dashboard() {
                 <Progress
                   value={Math.min(budget.percentage, 100)}
                   className="h-3"
-                  indicatorClassName={budget.exceeded ? 'bg-destructive' : budget.percentage >= 80 ? 'bg-amber-500' : 'bg-accent'}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   {Math.round(budget.percentage)}% utilizado
