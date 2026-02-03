@@ -150,6 +150,7 @@ export default function Charts() {
               <SelectContent>
                 <SelectItem value="bar">Barras</SelectItem>
                 <SelectItem value="line">Linha</SelectItem>
+                <SelectItem value="pie">Pizza</SelectItem>
               </SelectContent>
             </Select>
           </div>
