@@ -127,7 +127,9 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/transactions" element={<Transactions />} />
+            <Route path="/cards" element={<Cards />} />
             <Route path="/budgets" element={<Budgets />} />
+            <Route path="/predictions" element={<Predictions />} />
             <Route path="/charts" element={<Charts />} />
           </Routes>
         </main>
