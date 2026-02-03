@@ -189,8 +189,8 @@ export default function Transactions() {
                     <td className="p-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         transaction.type === 'income'
-                          ? 'bg-accent/10 text-accent'
-                          : 'bg-destructive/10 text-destructive'
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                          : 'bg-red-100 text-red-800 border border-red-300'
                       }`}>
                         {transaction.type === 'income' ? 'Receita' : 'Despesa'}
                       </span>
