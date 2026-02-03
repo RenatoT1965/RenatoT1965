@@ -54,6 +54,10 @@ function Navigation() {
             ))}
           </div>
 
+          <div className="hidden md:flex items-center gap-2">
+            <NotificationBell />
+          </div>
+
           <button
             data-testid="mobile-menu-toggle"
             className="md:hidden p-2 rounded-lg hover:bg-secondary"
