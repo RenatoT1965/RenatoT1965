@@ -9,8 +9,9 @@ import Charts from './pages/Charts';
 import Cards from './pages/Cards';
 import Predictions from './pages/Predictions';
 import AIAssistant from './pages/AIAssistant';
+import BankImport from './pages/BankImport';
 import NotificationBell from './components/NotificationBell';
-import { LayoutDashboard, Receipt, Target, BarChart3, CreditCard, TrendingUp, Sparkles, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Receipt, Target, BarChart3, CreditCard, TrendingUp, Sparkles, Upload, Menu, X } from 'lucide-react';
 import './App.css';
 
 function Navigation() {
