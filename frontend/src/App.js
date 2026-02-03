@@ -19,7 +19,9 @@ function Navigation() {
   const navItems = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/transactions', icon: Receipt, label: 'Lançamentos' },
+    { path: '/cards', icon: CreditCard, label: 'Cartões' },
     { path: '/budgets', icon: Target, label: 'Metas' },
+    { path: '/predictions', icon: TrendingUp, label: 'Previsões' },
     { path: '/charts', icon: BarChart3, label: 'Gráficos' },
   ];
 
