@@ -1,17 +1,62 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { API, axios, toast } from '../config';
 import { Button } from '../components/ui/button';
-import { Check, X, Crown, Zap } from 'lucide-react';
+import { Check, X, Crown, Zap, Loader2 } from 'lucide-react';
 
 export default function Pricing() {
   const [plans, setPlans] = useState([]);
   const [currentPlan, setCurrentPlan] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [upgrading, setUpgrading] = useState(false);
+  const [upgrading, setUpgrading] = useState(null);
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     loadPlans();
+    checkPaymentStatus();
   }, []);
+
+  const checkPaymentStatus = async () => {
+    const sessionId = searchParams.get('session_id');
+    const success = searchParams.get('success');
+    
+    if (sessionId && success) {
+      // Poll for payment status
+      pollPaymentStatus(sessionId);
+    }
+  };
+
+  const pollPaymentStatus = async (sessionId, attempts = 0) => {
+    const maxAttempts = 10;
+    const pollInterval = 2000;
+
+    if (attempts >= maxAttempts) {
+      toast.error('Não foi possível confirmar o pagamento. Verifique seu email.');
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${API}/payments/status/${sessionId}`);
+      
+      if (response.data.payment_status === 'paid') {
+        toast.success('Pagamento confirmado! Seu plano foi atualizado.');
+        loadPlans();
+        // Clear URL params
+        window.history.replaceState({}, document.title, '/pricing');
+        return;
+      } else if (response.data.status === 'expired') {
+        toast.error('Sessão de pagamento expirada. Tente novamente.');
+        window.history.replaceState({}, document.title, '/pricing');
+        return;
+      }
+
+      // Continue polling
+      setTimeout(() => pollPaymentStatus(sessionId, attempts + 1), pollInterval);
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+      setTimeout(() => pollPaymentStatus(sessionId, attempts + 1), pollInterval);
+    }
+  };
 
   const loadPlans = async () => {
     try {
@@ -32,16 +77,25 @@ export default function Pricing() {
   const handleUpgrade = async (planId) => {
     if (planId === 'free_trial') return;
     
-    setUpgrading(true);
+    setUpgrading(planId);
     try {
-      await axios.post(`${API}/plans/upgrade?plan_type=${planId}`);
-      toast.success('Plano atualizado com sucesso!');
-      loadPlans();
+      // Create checkout session
+      const response = await axios.post(`${API}/payments/checkout?plan_id=${planId}`, {}, {
+        headers: {
+          'Origin': window.location.origin
+        }
+      });
+
+      if (response.data.checkout_url) {
+        // Redirect to Stripe checkout
+        window.location.href = response.data.checkout_url;
+      } else {
+        throw new Error('URL de checkout não recebida');
+      }
     } catch (error) {
       console.error('Upgrade error:', error);
-      toast.error('Erro ao atualizar plano');
-    } finally {
-      setUpgrading(false);
+      toast.error('Erro ao iniciar pagamento');
+      setUpgrading(null);
     }
   };
 
@@ -154,13 +208,18 @@ export default function Pricing() {
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-900'
               }`}
             >
-              {currentPlan?.plan_type === plan.id
-                ? 'Plano Atual'
-                : plan.id === 'free_trial'
-                ? 'Teste Grátis Ativo'
-                : upgrading
-                ? 'Processando...'
-                : 'Assinar Agora'}
+              {upgrading === plan.id ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Redirecionando...
+                </>
+              ) : currentPlan?.plan_type === plan.id ? (
+                'Plano Atual'
+              ) : plan.id === 'free_trial' ? (
+                'Teste Grátis Ativo'
+              ) : (
+                'Assinar Agora'
+              )}
             </Button>
           </div>
         ))}
@@ -193,7 +252,7 @@ export default function Pricing() {
           <div className="bg-white p-6 rounded-xl border border-slate-200">
             <h4 className="font-semibold mb-2">Como faço o pagamento?</h4>
             <p className="text-sm text-slate-600">
-              Aceitamos cartão de crédito, PIX e boleto bancário através do Stripe/Mercado Pago.
+              Aceitamos cartão de crédito através do Stripe, a plataforma de pagamentos mais segura do mundo.
             </p>
           </div>
         </div>
