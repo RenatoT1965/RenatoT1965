@@ -79,12 +79,12 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div
           data-testid="balance-card"
-          className="bg-gradient-to-br from-primary to-accent p-6 rounded-2xl shadow-lg text-white"
+          className="bg-gradient-to-br from-emerald-600 to-teal-600 p-6 rounded-2xl shadow-lg text-white border-2 border-emerald-700"
         >
           <div className="flex items-center justify-between mb-4">
             <Wallet className="w-8 h-8" />
           </div>
-          <p className="text-sm opacity-90">Saldo Atual</p>
+          <p className="text-sm font-medium opacity-95">Saldo Atual</p>
           <h2 className="text-3xl font-heading font-bold mt-2">{formatCurrency(summary?.balance || 0)}</h2>
         </div>
 
