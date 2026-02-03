@@ -1059,6 +1059,79 @@ async def get_current_user(authorization: str = Header(None)):
     
     return user
 
+class ProfileUpdate(BaseModel):
+    name: str
+
+class PasswordUpdate(BaseModel):
+    current_password: str
+    new_password: str
+
+@api_router.put("/auth/profile")
+async def update_profile(profile_data: ProfileUpdate, authorization: str = Header(None)):
+    """Update user profile"""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Token não fornecido")
+    
+    token = authorization.replace("Bearer ", "")
+    user = await auth_manager.get_current_user(token)
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+    
+    # Update user name
+    await db.users.update_one(
+        {"id": user['id']},
+        {"$set": {"name": profile_data.name}}
+    )
+    
+    return {"message": "Perfil atualizado", "name": profile_data.name}
+
+@api_router.put("/auth/password")
+async def update_password(password_data: PasswordUpdate, authorization: str = Header(None)):
+    """Update user password"""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Token não fornecido")
+    
+    token = authorization.replace("Bearer ", "")
+    user = await auth_manager.get_current_user(token)
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+    
+    # Get full user data with password hash
+    user_doc = await db.users.find_one({"id": user['id']})
+    
+    # Verify current password
+    if not auth_manager.verify_password(password_data.current_password, user_doc['password_hash']):
+        raise HTTPException(status_code=400, detail="Senha atual incorreta")
+    
+    # Update password
+    new_hash = auth_manager.hash_password(password_data.new_password)
+    await db.users.update_one(
+        {"id": user['id']},
+        {"$set": {"password_hash": new_hash}}
+    )
+    
+    return {"message": "Senha atualizada"}
+
+@api_router.post("/users/complete-onboarding")
+async def complete_onboarding(authorization: str = Header(None)):
+    """Mark user onboarding as complete"""
+    if not authorization or not authorization.startswith("Bearer "):
+        # Allow without auth for now (using localStorage)
+        return {"message": "OK"}
+    
+    token = authorization.replace("Bearer ", "")
+    user = await auth_manager.get_current_user(token)
+    
+    if user:
+        await db.users.update_one(
+            {"id": user['id']},
+            {"$set": {"onboarding_completed": True}}
+        )
+    
+    return {"message": "Onboarding completo"}
+
 # Payment Endpoints
 @api_router.post("/payments/checkout")
 async def create_checkout(plan_id: str, request: Request):
