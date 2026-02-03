@@ -90,26 +90,26 @@ export default function Dashboard() {
 
         <div
           data-testid="income-card"
-          className="bg-white p-6 rounded-2xl shadow-sm border border-border hover:shadow-md transition-shadow"
+          className="bg-gradient-to-br from-emerald-50 to-green-50 p-6 rounded-2xl shadow-md border-2 border-emerald-200 hover:shadow-lg transition-shadow"
         >
           <div className="flex items-center justify-between mb-4">
-            <TrendingUp className="w-8 h-8 text-accent" />
+            <TrendingUp className="w-8 h-8 text-emerald-600" />
           </div>
-          <p className="text-sm text-muted-foreground">Receitas do Mês</p>
-          <h2 className="text-3xl font-heading font-bold mt-2 text-accent">
+          <p className="text-sm text-slate-700 font-medium">Receitas do Mês</p>
+          <h2 className="text-3xl font-heading font-bold mt-2 text-emerald-700">
             {formatCurrency(summary?.total_income || 0)}
           </h2>
         </div>
 
         <div
           data-testid="expenses-card"
-          className="bg-white p-6 rounded-2xl shadow-sm border border-border hover:shadow-md transition-shadow"
+          className="bg-gradient-to-br from-red-50 to-rose-50 p-6 rounded-2xl shadow-md border-2 border-red-200 hover:shadow-lg transition-shadow"
         >
           <div className="flex items-center justify-between mb-4">
-            <TrendingDown className="w-8 h-8 text-destructive" />
+            <TrendingDown className="w-8 h-8 text-red-600" />
           </div>
-          <p className="text-sm text-muted-foreground">Despesas do Mês</p>
-          <h2 className="text-3xl font-heading font-bold mt-2 text-destructive">
+          <p className="text-sm text-slate-700 font-medium">Despesas do Mês</p>
+          <h2 className="text-3xl font-heading font-bold mt-2 text-red-700">
             {formatCurrency(summary?.total_expenses || 0)}
           </h2>
         </div>
