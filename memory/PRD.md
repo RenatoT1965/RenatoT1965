@@ -86,25 +86,15 @@ Aplicativo de gerenciamento de finanças pessoais com funcionalidades de:
 ## Technical Architecture
 ```
 /app
-├── backend/
-│   ├── server.py          # FastAPI main app
-│   ├── auth.py            # JWT authentication
-│   ├── payments.py        # Stripe integration
-│   ├── ai_assistant.py    # Gemini AI chat
-│   ├── bank_file_processor.py  # OFX/CSV/PDF parser
-│   └── plan_manager.py    # Subscription limits
-├── frontend/
-│   └── src/
-│       ├── App.js         # Router & Navigation (with auth)
-│       ├── contexts/
-│       │   └── AuthContext.js  # Auth state management
-│       ├── pages/
-│       │   ├── Auth.js        # Login/Register
-│       │   ├── Profile.js     # User profile
-│       │   ├── EditProfile.js # Edit name/password
-│       │   ├── Onboarding.js  # New user setup
-│       │   └── ...
-│       └── components/
+├── backend/           # API FastAPI
+├── frontend/          # Web App React
+└── mobile/            # App Nativo Expo/React Native
+    ├── App.js         # Entry point com navegação
+    └── src/
+        ├── screens/   # Telas do app
+        ├── contexts/  # AuthContext
+        ├── services/  # API config
+        └── utils/     # Theme, helpers
 ```
 
 ## Tech Stack
