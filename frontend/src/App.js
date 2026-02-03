@@ -24,6 +24,7 @@ function Navigation() {
     { path: '/budgets', icon: Target, label: 'Metas' },
     { path: '/predictions', icon: TrendingUp, label: 'Previsões' },
     { path: '/charts', icon: BarChart3, label: 'Gráficos' },
+    { path: '/ai-assistant', icon: Sparkles, label: 'Assistente IA' },
   ];
 
   return (
