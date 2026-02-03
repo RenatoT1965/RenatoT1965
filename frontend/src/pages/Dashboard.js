@@ -12,7 +12,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState('expense');
-  const [budgetAlerts, setBudgetAlerts] = useState([]);
 
   useEffect(() => {
     loadDashboard();
@@ -22,20 +21,6 @@ export default function Dashboard() {
     try {
       const response = await axios.get(`${API}/dashboard/summary`);
       setSummary(response.data);
-      
-      for (const budget of response.data.budgets_status) {
-        if (budget.percentage >= 80) {
-          const alertResponse = await axios.get(`${API}/budgets/${budget.id}/status`);
-          if (alertResponse.data.should_alert) {
-            setBudgetAlerts(prev => [...prev, alertResponse.data]);
-            if (alertResponse.data.play_sound) {
-              const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjiP1fPTgjEGHm7A7+OZUQ8PUqvm7KtaEgtIsOPxv20fCDiR1vLOeCwFJHfH8N2RQAoUXrTp66lVFApGn+DyvmwhBjiP1fPTgjEGHm7A7+OZUQ8PUqvm7KtaEgtIsOPxv20fCDiR1vLOeCwFJHfH8N2RQAoUXrTp66lVFApGn+DyvmwhBjiP1fPTgjEGHm7A7+OZUQ8PUqvm7KtaEgtIsOPxv20fCDiR1vLOeCwFJHfH8N2RQAoUXrTp66lVFApGn+DyvmwhBjiP1fPTgjEGHm7A7+OZUQ8PUqvm7KtaEgtIsOPxv20fCDiR1vLOeCwFJHfH8N2RQAoUXrTp66lVFApGn+DyvmwhBjiP1fPTgjEGHm7A7+OZUQ8PUqvm7KtaEgtIsOPxv20fCDiR1vLOeCwFJHfH8N2RQAoUXrTp66lVFApGn+DyvmwhBjiP1fPTgjEGHm7A7+OZUQ8PUqvm7KtaEgtIsOPxv20fCDiR1vLOeCwFJHfH8N2RQAoUXrTp66lVFApGn+DyvmwhBjiP1fPTgjEGHm7A7+OZUQ8PUqvm7KtaEgtIsOPxv20fCDiR1vLOeCwFJHfH8N2RQAoUXrTp66lVFApGn+DyvmwhBjiP1fPTgjEGHm7A7+OZUQ8PUqvm7A==');
-              audio.play().catch(e => console.log('Audio play failed:', e));
-            }
-          }
-        }
-      }
-      
       setLoading(false);
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -91,35 +76,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {budgetAlerts.length > 0 && (
-        <div className="space-y-3">
-          {budgetAlerts.map((alert) => (
-            <div
-              key={alert.budget_id}
-              data-testid={`budget-alert-${alert.budget_id}`}
-              className={`p-4 rounded-xl border-2 flex items-start gap-3 ${
-                alert.exceeded
-                  ? 'bg-destructive/10 border-destructive'
-                  : 'bg-amber-50 border-amber-500'
-              }`}
-            >
-              <AlertCircle className={`w-5 h-5 flex-shrink-0 ${
-                alert.exceeded ? 'text-destructive' : 'text-amber-600'
-              }`} />
-              <div className="flex-1">
-                <h3 className="font-semibold">
-                  {alert.exceeded ? 'Meta Ultrapassada!' : 'Atenção: Meta Próxima do Limite'}
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {alert.budget_name}: {formatCurrency(alert.current_amount)} de {formatCurrency(alert.limit_amount)}
-                  {' '}({Math.round(alert.percentage * 100)}%)
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div
           data-testid="balance-card"
@@ -165,6 +121,15 @@ export default function Dashboard() {
           <div className="space-y-4">
             {summary.budgets_status.map((budget) => (
               <div key={budget.id} data-testid={`budget-progress-${budget.id}`}>
+                {budget.exceeded && (
+                  <div className="mb-3 p-3 rounded-lg bg-destructive/10 border border-destructive flex items-start gap-2">
+                    <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-destructive">Meta Ultrapassada!</p>
+                      <p className="text-sm text-muted-foreground">{budget.name}</p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-medium">{budget.name}</span>
                   <span className={`text-sm font-semibold ${
