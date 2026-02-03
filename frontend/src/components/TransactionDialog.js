@@ -209,6 +209,48 @@ export default function TransactionDialog({ open, onOpenChange, transaction, typ
             </Select>
           </div>
 
+          {formData.payment_method === 'credit_card' && (
+            <>
+              <div>
+                <Label htmlFor="card">Cartão de Crédito</Label>
+                <Select
+                  value={formData.card_id}
+                  onValueChange={(value) => setFormData({ ...formData, card_id: value })}
+                >
+                  <SelectTrigger id="card" data-testid="transaction-card-select">
+                    <SelectValue placeholder="Selecione um cartão" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cards.map((card) => (
+                      <SelectItem key={card.id} value={card.id}>
+                        {card.name} - **** {card.last_four_digits}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="installments">Parcelas</Label>
+                <Select
+                  value={formData.installments.toString()}
+                  onValueChange={(value) => setFormData({ ...formData, installments: parseInt(value) })}
+                >
+                  <SelectTrigger id="installments" data-testid="transaction-installments-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((num) => (
+                      <SelectItem key={num} value={num.toString()}>
+                        {num}x
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+
           <div>
             <Label htmlFor="notes">Observações</Label>
             <Textarea
