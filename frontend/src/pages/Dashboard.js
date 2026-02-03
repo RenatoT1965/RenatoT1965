@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { API, axios, toast } from '../App';
+import { API, axios, toast } from '../config';
 import { TrendingUp, TrendingDown, Wallet, Plus, AlertCircle } from 'lucide-react';
 import { Progress } from '../components/ui/progress';
 import { Button } from '../components/ui/button';
