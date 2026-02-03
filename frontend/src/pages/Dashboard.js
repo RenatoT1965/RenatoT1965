@@ -12,6 +12,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState('expense');
+  const [aiInsights, setAiInsights] = useState([]);
 
   useEffect(() => {
     loadDashboard();
