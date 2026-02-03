@@ -212,70 +212,161 @@ export default function Charts() {
       </div>
 
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-border">
-        {chartData.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Nenhum dado disponível para exibir</p>
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={400}>
-            {chartType === 'bar' ? (
-              <BarChart data={chartData} data-testid="bar-chart">
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="date" stroke="#64748b" />
-                <YAxis stroke="#64748b" />
-                <Tooltip
-                  formatter={(value) => formatCurrency(value)}
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="income" fill="#10B981" name="Receitas" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="expenses" fill="#EF4444" name="Despesas" radius={[8, 8, 0, 0]} />
-              </BarChart>
+        {chartType === 'pie' ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Tipo de Dado</label>
+                <Select value={pieType} onValueChange={setPieType}>
+                  <SelectTrigger data-testid="pie-type-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="expenses">Despesas</SelectItem>
+                    <SelectItem value="income">Receitas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Agrupar Por</label>
+                <Select value={pieGroupBy} onValueChange={setPieGroupBy}>
+                  <SelectTrigger data-testid="pie-groupby-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="category">Categoria</SelectItem>
+                    <SelectItem value="payment_method">Meio de Pagamento</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {pieData.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Nenhum dado disponível para exibir</p>
+              </div>
             ) : (
-              <LineChart data={chartData} data-testid="line-chart">
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="date" stroke="#64748b" />
-                <YAxis stroke="#64748b" />
-                <Tooltip
-                  formatter={(value) => formatCurrency(value)}
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="income"
-                  stroke="#10B981"
-                  strokeWidth={2}
-                  name="Receitas"
-                  dot={{ r: 4 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="expenses"
-                  stroke="#EF4444"
-                  strokeWidth={2}
-                  name="Despesas"
-                  dot={{ r: 4 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="balance"
-                  stroke="#065F46"
-                  strokeWidth={2}
-                  name="Saldo"
-                  dot={{ r: 4 }}
-                />
-              </LineChart>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ResponsiveContainer width="100%" height={400}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={CustomPieLabel}
+                      outerRadius={140}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) => formatCurrency(value)}
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-lg mb-4">Detalhamento</h3>
+                  {pieData.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: item.color || COLORS[index % COLORS.length] }}
+                        />
+                        <span className="font-medium text-slate-700">{item.label}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-slate-900">{formatCurrency(item.value)}</p>
+                        <p className="text-xs text-slate-600">{item.percentage}%</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
-          </ResponsiveContainer>
+          </>
+        ) : (
+          <>
+            {chartData.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Nenhum dado disponível para exibir</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={400}>
+                {chartType === 'bar' ? (
+                  <BarChart data={chartData} data-testid="bar-chart">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis dataKey="date" stroke="#64748b" />
+                    <YAxis stroke="#64748b" />
+                    <Tooltip
+                      formatter={(value) => formatCurrency(value)}
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="income" fill="#10B981" name="Receitas" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="expenses" fill="#EF4444" name="Despesas" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                ) : (
+                  <LineChart data={chartData} data-testid="line-chart">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis dataKey="date" stroke="#64748b" />
+                    <YAxis stroke="#64748b" />
+                    <Tooltip
+                      formatter={(value) => formatCurrency(value)}
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="income"
+                      stroke="#10B981"
+                      strokeWidth={2}
+                      name="Receitas"
+                      dot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="expenses"
+                      stroke="#EF4444"
+                      strokeWidth={2}
+                      name="Despesas"
+                      dot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="balance"
+                      stroke="#065F46"
+                      strokeWidth={2}
+                      name="Saldo"
+                      dot={{ r: 4 }}
+                    />
+                  </LineChart>
+                )}
+              </ResponsiveContainer>
+            )}
+          </>
         )}
       </div>
     </div>
