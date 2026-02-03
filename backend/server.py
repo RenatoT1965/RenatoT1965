@@ -1076,6 +1076,85 @@ async def get_chat_history(limit: int = 20):
     
     return {"history": history}
 
+# Bank File Import Endpoints
+@api_router.post("/import/upload")
+async def upload_bank_file(
+    file: UploadFile = File(...),
+    auto_categorize: bool = True,
+    skip_duplicates: bool = True
+):
+    """Upload and process bank file (OFX, CSV, PDF)"""
+    try:
+        content = await file.read()
+        file_extension = file.filename.split('.')[-1].lower()
+        
+        # Process file based on type
+        if file_extension == 'ofx':
+            transactions = await bank_processor.process_ofx(content)
+        elif file_extension == 'csv':
+            transactions = await bank_processor.process_csv(content)
+        elif file_extension == 'pdf':
+            transactions = await bank_processor.process_pdf(content)
+        else:
+            raise HTTPException(status_code=400, detail="Formato não suportado. Use OFX, CSV ou PDF")
+        
+        if not transactions:
+            raise HTTPException(status_code=400, detail="Nenhuma transação encontrada no arquivo")
+        
+        # Detect duplicates
+        transactions = await bank_processor.detect_duplicates(transactions)
+        
+        # Auto-categorize if requested
+        if auto_categorize:
+            transactions = await bank_processor.categorize_transactions(transactions)
+        
+        # Return preview for user confirmation
+        return {
+            "success": True,
+            "preview": transactions[:50],  # Show first 50 for review
+            "total_found": len(transactions),
+            "duplicates": sum(1 for t in transactions if t.get('is_duplicate')),
+            "new_transactions": sum(1 for t in transactions if not t.get('is_duplicate'))
+        }
+    
+    except Exception as e:
+        logger.error(f"File upload error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/import/confirm")
+async def confirm_import(transactions: List[dict], skip_duplicates: bool = True):
+    """Confirm and import transactions after preview"""
+    try:
+        result = await bank_processor.import_transactions(transactions, skip_duplicates)
+        
+        # Create notification
+        notification = Notification(
+            type="card_sync",
+            title="Importação concluída",
+            message=f"{result['imported']} transações importadas com sucesso. {result['skipped']} duplicatas ignoradas.",
+            related_id=None
+        )
+        await db.notifications.insert_one(notification.model_dump())
+        
+        return result
+    except Exception as e:
+        logger.error(f"Import confirmation error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/import/history")
+async def get_import_history():
+    """Get import history"""
+    # Get transactions with 'importado' tag
+    transactions = await db.transactions.find({
+        "tags": "importado"
+    }, {"_id": 0}).sort("date", -1).limit(100).to_list(100)
+    
+    for t in transactions:
+        if isinstance(t['date'], str):
+            t['date'] = datetime.fromisoformat(t['date'])
+    
+    return {"imports": transactions, "total": len(transactions)}
+
 app.include_router(api_router)
 
 app.add_middleware(
