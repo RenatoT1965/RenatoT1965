@@ -224,10 +224,18 @@ async def create_transaction(transaction: TransactionCreate):
     if transaction.amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be greater than 0")
     
+    # Check plan limit
+    limit_check = await plan_manager.check_limit("default_user", "transaction")
+    if not limit_check["allowed"]:
+        raise HTTPException(status_code=403, detail=limit_check.get("message", "Limite atingido"))
+    
     trans_obj = Transaction(**transaction.model_dump())
     doc = trans_obj.model_dump()
     doc['date'] = doc['date'].isoformat()
     await db.transactions.insert_one(doc)
+    
+    # Increment usage
+    await plan_manager.increment_usage("default_user", "transaction")
     
     if trans_obj.type == "expense":
         await check_budget_alerts(trans_obj)
