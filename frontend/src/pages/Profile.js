@@ -242,6 +242,23 @@ export default function Profile() {
       {/* Actions */}
       <div className="bg-white rounded-2xl shadow-sm border border-border divide-y divide-border">
         <button
+          onClick={() => navigate('/profile/edit')}
+          className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
+          data-testid="edit-profile-btn"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <Settings className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="text-left">
+              <p className="font-medium">Editar Perfil</p>
+              <p className="text-sm text-slate-500">Alterar nome e senha</p>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-slate-400" />
+        </button>
+
+        <button
           onClick={() => navigate('/pricing')}
           className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
           data-testid="manage-subscription-btn"
