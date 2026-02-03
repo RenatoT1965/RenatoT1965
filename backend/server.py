@@ -25,7 +25,7 @@ db = client[os.environ['DB_NAME']]
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
-# Models
+# Existing Models
 class Transaction(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -35,6 +35,9 @@ class Transaction(BaseModel):
     description: str
     category_id: Optional[str] = None
     payment_method: Literal["cash", "credit_card", "debit_card", "pix", "bank_transfer", "other"]
+    card_id: Optional[str] = None
+    installments: Optional[int] = 1
+    current_installment: Optional[int] = 1
     tags: Optional[List[str]] = []
     notes: Optional[str] = None
 
@@ -45,6 +48,9 @@ class TransactionCreate(BaseModel):
     description: str
     category_id: Optional[str] = None
     payment_method: Literal["cash", "credit_card", "debit_card", "pix", "bank_transfer", "other"]
+    card_id: Optional[str] = None
+    installments: Optional[int] = 1
+    current_installment: Optional[int] = 1
     tags: Optional[List[str]] = []
     notes: Optional[str] = None
 
@@ -85,6 +91,73 @@ class BudgetCreate(BaseModel):
     alert_sound_enabled: bool = True
     alert_threshold: float = 0.8
 
+# New Models for Credit Cards
+class CreditCard(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    brand: Literal["visa", "mastercard", "elo", "amex", "hipercard", "other"]
+    last_four_digits: str
+    credit_limit: float
+    closing_day: int
+    due_day: int
+    active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CreditCardCreate(BaseModel):
+    name: str
+    brand: Literal["visa", "mastercard", "elo", "amex", "hipercard", "other"]
+    last_four_digits: str
+    credit_limit: float
+    closing_day: int
+    due_day: int
+    active: bool = True
+
+# Invoice Model
+class Invoice(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    card_id: str
+    month_ref: str
+    total_amount: float
+    paid_amount: float = 0.0
+    status: Literal["open", "closed", "paid", "overdue"]
+    closing_date: datetime
+    due_date: datetime
+    transactions: List[str] = []
+
+# Recurring Transaction
+class RecurringTransaction(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    description: str
+    amount: float
+    category_id: Optional[str] = None
+    payment_method: str
+    frequency: Literal["daily", "weekly", "monthly", "yearly"]
+    next_date: datetime
+    active: bool = True
+
+class RecurringTransactionCreate(BaseModel):
+    description: str
+    amount: float
+    category_id: Optional[str] = None
+    payment_method: str
+    frequency: Literal["daily", "weekly", "monthly", "yearly"]
+    next_date: datetime
+    active: bool = True
+
+# Notification Model
+class Notification(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    type: Literal["invoice_due", "budget_alert", "card_sync", "prediction"]
+    title: str
+    message: str
+    read: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    related_id: Optional[str] = None
+
 class Settings(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = "settings"
@@ -92,6 +165,7 @@ class Settings(BaseModel):
     locale: str = "pt-BR"
     week_starts_on: Literal["monday", "sunday"] = "monday"
     timezone: str = "America/Sao_Paulo"
+    notifications_enabled: bool = True
 
 class DashboardSummary(BaseModel):
     total_income: float
@@ -99,6 +173,8 @@ class DashboardSummary(BaseModel):
     balance: float
     budgets_status: List[dict]
     recent_transactions: List[Transaction]
+    cards_summary: List[dict]
+    pending_invoices: int
 
 class BudgetAlert(BaseModel):
     budget_id: str
@@ -125,6 +201,18 @@ def get_period_dates(period: str, start_date: Optional[datetime] = None, end_dat
         end = end_date
     return start, end
 
+def get_current_invoice_period(closing_day: int):
+    now = datetime.now(timezone.utc)
+    if now.day >= closing_day:
+        start = now.replace(day=closing_day, hour=0, minute=0, second=0, microsecond=0)
+        next_month = start + timedelta(days=32)
+        end = next_month.replace(day=closing_day) - timedelta(seconds=1)
+    else:
+        end = now.replace(day=closing_day, hour=23, minute=59, second=59, microsecond=0)
+        prev_month = now - timedelta(days=now.day + 10)
+        start = prev_month.replace(day=closing_day, hour=0, minute=0, second=0, microsecond=0)
+    return start, end
+
 # Routes
 @api_router.get("/")
 async def root():
@@ -141,7 +229,6 @@ async def create_transaction(transaction: TransactionCreate):
     doc['date'] = doc['date'].isoformat()
     await db.transactions.insert_one(doc)
     
-    # Check budget alerts
     if trans_obj.type == "expense":
         await check_budget_alerts(trans_obj)
     
@@ -152,6 +239,7 @@ async def get_transactions(
     type: Optional[str] = None,
     category_id: Optional[str] = None,
     payment_method: Optional[str] = None,
+    card_id: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None
 ):
@@ -162,6 +250,8 @@ async def get_transactions(
         query['category_id'] = category_id
     if payment_method:
         query['payment_method'] = payment_method
+    if card_id:
+        query['card_id'] = card_id
     if start_date or end_date:
         query['date'] = {}
         if start_date:
@@ -236,7 +326,216 @@ async def delete_category(category_id: str):
         raise HTTPException(status_code=404, detail="Category not found")
     return {"message": "Category deleted"}
 
-# Budgets
+# Credit Cards
+@api_router.post("/cards", response_model=CreditCard)
+async def create_card(card: CreditCardCreate):
+    card_obj = CreditCard(**card.model_dump())
+    doc = card_obj.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.cards.insert_one(doc)
+    return card_obj
+
+@api_router.get("/cards", response_model=List[CreditCard])
+async def get_cards(active_only: bool = False):
+    query = {"active": True} if active_only else {}
+    cards = await db.cards.find(query, {"_id": 0}).to_list(100)
+    for c in cards:
+        if isinstance(c.get('created_at'), str):
+            c['created_at'] = datetime.fromisoformat(c['created_at'])
+    return cards
+
+@api_router.get("/cards/{card_id}", response_model=CreditCard)
+async def get_card(card_id: str):
+    card = await db.cards.find_one({"id": card_id}, {"_id": 0})
+    if not card:
+        raise HTTPException(status_code=404, detail="Card not found")
+    if isinstance(card.get('created_at'), str):
+        card['created_at'] = datetime.fromisoformat(card['created_at'])
+    return card
+
+@api_router.put("/cards/{card_id}", response_model=CreditCard)
+async def update_card(card_id: str, card: CreditCardCreate):
+    existing_card = await db.cards.find_one({"id": card_id}, {"_id": 0})
+    if not existing_card:
+        raise HTTPException(status_code=404, detail="Card not found")
+    
+    card_obj = CreditCard(id=card_id, created_at=datetime.fromisoformat(existing_card['created_at']), **card.model_dump())
+    doc = card_obj.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.cards.replace_one({"id": card_id}, doc)
+    return card_obj
+
+@api_router.delete("/cards/{card_id}")
+async def delete_card(card_id: str):
+    result = await db.cards.update_one({"id": card_id}, {"$set": {"active": False}})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Card not found")
+    return {"message": "Card deactivated"}
+
+# Card Invoice
+@api_router.get("/cards/{card_id}/invoice")
+async def get_card_invoice(card_id: str):
+    card = await db.cards.find_one({"id": card_id}, {"_id": 0})
+    if not card:
+        raise HTTPException(status_code=404, detail="Card not found")
+    
+    card_obj = CreditCard(**card)
+    start, end = get_current_invoice_period(card_obj.closing_day)
+    
+    transactions = await db.transactions.find({
+        "card_id": card_id,
+        "type": "expense",
+        "date": {"$gte": start.isoformat(), "$lte": end.isoformat()}
+    }, {"_id": 0}).to_list(1000)
+    
+    total = sum(t['amount'] for t in transactions)
+    available = card_obj.credit_limit - total
+    
+    now = datetime.now(timezone.utc)
+    closing = now.replace(day=card_obj.closing_day)
+    if now.day >= card_obj.closing_day:
+        closing = (closing + timedelta(days=32)).replace(day=card_obj.closing_day)
+    
+    due = closing + timedelta(days=(card_obj.due_day - card_obj.closing_day))
+    
+    return {
+        "card_id": card_id,
+        "card_name": card_obj.name,
+        "credit_limit": card_obj.credit_limit,
+        "used_amount": total,
+        "available_amount": available,
+        "usage_percentage": (total / card_obj.credit_limit * 100) if card_obj.credit_limit > 0 else 0,
+        "closing_date": closing.isoformat(),
+        "due_date": due.isoformat(),
+        "transactions": transactions,
+        "total_transactions": len(transactions)
+    }
+
+# Sync Card (Simulate)
+@api_router.post("/cards/{card_id}/sync")
+async def sync_card(card_id: str):
+    card = await db.cards.find_one({"id": card_id}, {"_id": 0})
+    if not card:
+        raise HTTPException(status_code=404, detail="Card not found")
+    
+    # Simulate syncing - create notification
+    notification = Notification(
+        type="card_sync",
+        title=f"Cartão {card['name']} sincronizado",
+        message=f"3 novas transações foram importadas do cartão {card['name']}",
+        related_id=card_id
+    )
+    await db.notifications.insert_one(notification.model_dump())
+    
+    return {"message": "Card synced successfully", "new_transactions": 3}
+
+# Recurring Transactions
+@api_router.post("/recurring-transactions", response_model=RecurringTransaction)
+async def create_recurring(recurring: RecurringTransactionCreate):
+    rec_obj = RecurringTransaction(**recurring.model_dump())
+    doc = rec_obj.model_dump()
+    doc['next_date'] = doc['next_date'].isoformat()
+    await db.recurring_transactions.insert_one(doc)
+    return rec_obj
+
+@api_router.get("/recurring-transactions", response_model=List[RecurringTransaction])
+async def get_recurring_transactions():
+    recurring = await db.recurring_transactions.find({}, {"_id": 0}).to_list(100)
+    for r in recurring:
+        if isinstance(r['next_date'], str):
+            r['next_date'] = datetime.fromisoformat(r['next_date'])
+    return recurring
+
+@api_router.delete("/recurring-transactions/{recurring_id}")
+async def delete_recurring(recurring_id: str):
+    result = await db.recurring_transactions.delete_one({"id": recurring_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Recurring transaction not found")
+    return {"message": "Recurring transaction deleted"}
+
+# Predictions
+@api_router.get("/predictions")
+async def get_predictions(months: int = 3):
+    now = datetime.now(timezone.utc)
+    
+    # Get last 6 months average
+    six_months_ago = now - timedelta(days=180)
+    transactions = await db.transactions.find({
+        "type": "expense",
+        "date": {"$gte": six_months_ago.isoformat()}
+    }, {"_id": 0}).to_list(10000)
+    
+    categories_avg = {}
+    for t in transactions:
+        cat_id = t.get('category_id', 'uncategorized')
+        if cat_id not in categories_avg:
+            categories_avg[cat_id] = []
+        categories_avg[cat_id].append(t['amount'])
+    
+    predictions = []
+    for i in range(months):
+        future_date = now + timedelta(days=30 * (i + 1))
+        month_predictions = []
+        total = 0
+        
+        for cat_id, amounts in categories_avg.items():
+            avg = sum(amounts) / len(amounts) if amounts else 0
+            category = await db.categories.find_one({"id": cat_id}, {"_id": 0})
+            month_predictions.append({
+                "category_id": cat_id,
+                "category_name": category['name'] if category else "Sem categoria",
+                "predicted_amount": round(avg, 2)
+            })
+            total += avg
+        
+        # Add recurring transactions
+        recurring = await db.recurring_transactions.find({"active": True}, {"_id": 0}).to_list(100)
+        for rec in recurring:
+            total += rec['amount']
+            month_predictions.append({
+                "description": rec['description'],
+                "amount": rec['amount'],
+                "type": "recurring"
+            })
+        
+        predictions.append({
+            "month": future_date.strftime("%Y-%m"),
+            "month_name": future_date.strftime("%B %Y"),
+            "predicted_total": round(total, 2),
+            "details": month_predictions
+        })
+    
+    return {"predictions": predictions}
+
+# Notifications
+@api_router.get("/notifications", response_model=List[Notification])
+async def get_notifications(unread_only: bool = False):
+    query = {"read": False} if unread_only else {}
+    notifications = await db.notifications.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+    for n in notifications:
+        if isinstance(n['created_at'], str):
+            n['created_at'] = datetime.fromisoformat(n['created_at'])
+    return notifications
+
+@api_router.put("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str):
+    result = await db.notifications.update_one(
+        {"id": notification_id},
+        {"$set": {"read": True}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return {"message": "Notification marked as read"}
+
+@api_router.delete("/notifications/{notification_id}")
+async def delete_notification(notification_id: str):
+    result = await db.notifications.delete_one({"id": notification_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return {"message": "Notification deleted"}
+
+# Budgets (existing code continues...)
 @api_router.post("/budgets", response_model=Budget)
 async def create_budget(budget: BudgetCreate):
     if budget.limit_amount <= 0:
@@ -286,7 +585,6 @@ async def delete_budget(budget_id: str):
         raise HTTPException(status_code=404, detail="Budget not found")
     return {"message": "Budget deleted"}
 
-# Budget alerts
 async def check_budget_alerts(transaction: Transaction):
     budgets = await db.budgets.find({"alerts_enabled": True}, {"_id": 0}).to_list(100)
     
@@ -313,11 +611,9 @@ async def check_budget_alerts(transaction: Transaction):
         total = sum(t['amount'] for t in transactions)
         percentage = total / budget.limit_amount if budget.limit_amount > 0 else 0
         
-        # Check if should alert
         should_alert = percentage >= budget.alert_threshold
         now = datetime.now(timezone.utc)
         
-        # Anti-spam: only alert once per hour
         if budget.last_alerted_at:
             time_since_last = (now - budget.last_alerted_at).total_seconds()
             if time_since_last < 3600:
@@ -431,6 +727,35 @@ async def get_dashboard_summary():
             "exceeded": percentage >= 100
         })
     
+    # Get cards summary
+    cards = await db.cards.find({"active": True}, {"_id": 0}).to_list(100)
+    cards_summary = []
+    
+    for card in cards:
+        card_obj = CreditCard(**card)
+        start, end = get_current_invoice_period(card_obj.closing_day)
+        
+        card_transactions = await db.transactions.find({
+            "card_id": card_obj.id,
+            "type": "expense",
+            "date": {"$gte": start.isoformat(), "$lte": end.isoformat()}
+        }, {"_id": 0}).to_list(1000)
+        
+        used = sum(t['amount'] for t in card_transactions)
+        available = card_obj.credit_limit - used
+        
+        cards_summary.append({
+            "id": card_obj.id,
+            "name": card_obj.name,
+            "used": used,
+            "limit": card_obj.credit_limit,
+            "available": available,
+            "usage_percentage": (used / card_obj.credit_limit * 100) if card_obj.credit_limit > 0 else 0
+        })
+    
+    # Count pending invoices
+    pending_invoices = sum(1 for c in cards_summary if c['used'] > 0)
+    
     recent = sorted(transactions, key=lambda x: x['date'], reverse=True)[:5]
     
     return DashboardSummary(
@@ -438,7 +763,9 @@ async def get_dashboard_summary():
         total_expenses=total_expenses,
         balance=balance,
         budgets_status=budgets_status,
-        recent_transactions=[Transaction(**t) for t in recent]
+        recent_transactions=[Transaction(**t) for t in recent],
+        cards_summary=cards_summary,
+        pending_invoices=pending_invoices
     )
 
 # Charts
@@ -468,14 +795,13 @@ async def get_chart_data(
         if isinstance(t['date'], str):
             t['date'] = datetime.fromisoformat(t['date'])
     
-    # Group by granularity
     grouped = {}
     for t in transactions:
         if granularity == "day":
             key = t['date'].strftime("%Y-%m-%d")
         elif granularity == "week":
             key = t['date'].strftime("%Y-W%W")
-        else:  # month
+        else:
             key = t['date'].strftime("%Y-%m")
         
         if key not in grouped:
@@ -497,21 +823,86 @@ async def get_chart_data(
     
     return result
 
+# Pie Chart Data
+@api_router.get("/reports/pie-chart")
+async def get_pie_chart_data(
+    type: str = "expenses",
+    group_by: str = "category",
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+):
+    query = {"type": "expense" if type == "expenses" else "income"}
+    
+    if start_date or end_date:
+        query['date'] = {}
+        if start_date:
+            query['date']['$gte'] = start_date
+        if end_date:
+            query['date']['$lte'] = end_date
+    
+    transactions = await db.transactions.find(query, {"_id": 0}).to_list(10000)
+    categories = await db.categories.find({}, {"_id": 0}).to_list(100)
+    
+    grouped = {}
+    total = 0
+    
+    for t in transactions:
+        if group_by == "category":
+            key = t.get('category_id', 'uncategorized')
+            cat = next((c for c in categories if c['id'] == key), None)
+            label = cat['name'] if cat else "Sem categoria"
+            color = cat.get('color', '#94A3B8') if cat else '#94A3B8'
+        else:  # payment_method
+            key = t.get('payment_method', 'other')
+            labels_map = {
+                "cash": "Dinheiro",
+                "credit_card": "Cartão de Crédito",
+                "debit_card": "Cartão de Débito",
+                "pix": "PIX",
+                "bank_transfer": "Transferência",
+                "other": "Outro"
+            }
+            label = labels_map.get(key, key)
+            color = None
+        
+        if key not in grouped:
+            grouped[key] = {"label": label, "value": 0, "color": color}
+        
+        grouped[key]['value'] += t['amount']
+        total += t['amount']
+    
+    result = []
+    for key, data in grouped.items():
+        percentage = (data['value'] / total * 100) if total > 0 else 0
+        result.append({
+            "id": key,
+            "label": data['label'],
+            "value": data['value'],
+            "percentage": round(percentage, 1),
+            "color": data['color']
+        })
+    
+    result.sort(key=lambda x: x['value'], reverse=True)
+    
+    return {
+        "data": result,
+        "total": total
+    }
+
 # Export
 @api_router.get("/export/excel")
 async def export_excel():
-    # Get all data
     transactions = await db.transactions.find({}, {"_id": 0}).to_list(10000)
     categories = await db.categories.find({}, {"_id": 0}).to_list(100)
     budgets = await db.budgets.find({}, {"_id": 0}).to_list(100)
+    cards = await db.cards.find({}, {"_id": 0}).to_list(100)
     
-    # Create workbook
     wb = Workbook()
     
-    # Transactions sheet
+    # Transactions
     ws1 = wb.active
     ws1.title = "Transactions"
-    headers = ["ID", "Type", "Amount", "Date", "Description", "Category ID", "Payment Method", "Tags", "Notes"]
+    headers = ["ID", "Type", "Amount", "Date", "Description", "Category ID", "Payment Method", "Card ID", "Tags", "Notes"]
     ws1.append(headers)
     
     for h in ws1[1]:
@@ -523,11 +914,11 @@ async def export_excel():
             t['id'], t['type'], t['amount'],
             t['date'] if isinstance(t['date'], str) else t['date'].isoformat(),
             t['description'], t.get('category_id', ''),
-            t['payment_method'], ','.join(t.get('tags', [])),
-            t.get('notes', '')
+            t['payment_method'], t.get('card_id', ''),
+            ','.join(t.get('tags', [])), t.get('notes', '')
         ])
     
-    # Categories sheet
+    # Categories
     ws2 = wb.create_sheet("Categories")
     ws2.append(["ID", "Name", "Color"])
     for h in ws2[1]:
@@ -537,7 +928,7 @@ async def export_excel():
     for c in categories:
         ws2.append([c['id'], c['name'], c.get('color', '')])
     
-    # Budgets sheet
+    # Budgets
     ws3 = wb.create_sheet("Budgets")
     ws3.append(["ID", "Name", "Period", "Limit Amount", "Scope", "Category ID", "Alerts Enabled"])
     for h in ws3[1]:
@@ -550,22 +941,35 @@ async def export_excel():
             b['scope'], b.get('category_id', ''), b['alerts_enabled']
         ])
     
-    # Summary sheet
-    ws4 = wb.create_sheet("Summary")
-    ws4.append(["Metric", "Value"])
-    ws4[1][0].font = Font(bold=True)
-    ws4[1][1].font = Font(bold=True)
+    # Cards
+    ws4 = wb.create_sheet("Cards")
+    ws4.append(["ID", "Name", "Brand", "Last 4 Digits", "Credit Limit", "Closing Day", "Due Day", "Active"])
+    for h in ws4[1]:
+        h.font = Font(bold=True)
+        h.fill = PatternFill(start_color="065F46", end_color="065F46", fill_type="solid")
+    
+    for c in cards:
+        ws4.append([
+            c['id'], c['name'], c['brand'], c['last_four_digits'],
+            c['credit_limit'], c['closing_day'], c['due_day'], c['active']
+        ])
+    
+    # Summary
+    ws5 = wb.create_sheet("Summary")
+    ws5.append(["Metric", "Value"])
+    ws5[1][0].font = Font(bold=True)
+    ws5[1][1].font = Font(bold=True)
     
     total_income = sum(t['amount'] for t in transactions if t['type'] == 'income')
     total_expenses = sum(t['amount'] for t in transactions if t['type'] == 'expense')
-    ws4.append(["Total Income", total_income])
-    ws4.append(["Total Expenses", total_expenses])
-    ws4.append(["Balance", total_income - total_expenses])
-    ws4.append(["Total Transactions", len(transactions)])
-    ws4.append(["Total Categories", len(categories)])
-    ws4.append(["Total Budgets", len(budgets)])
+    ws5.append(["Total Income", total_income])
+    ws5.append(["Total Expenses", total_expenses])
+    ws5.append(["Balance", total_income - total_expenses])
+    ws5.append(["Total Transactions", len(transactions)])
+    ws5.append(["Total Categories", len(categories)])
+    ws5.append(["Total Budgets", len(budgets)])
+    ws5.append(["Total Cards", len(cards)])
     
-    # Save to bytes
     output = io.BytesIO()
     wb.save(output)
     output.seek(0)
