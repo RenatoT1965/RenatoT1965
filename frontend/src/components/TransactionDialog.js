@@ -9,6 +9,7 @@ import { Textarea } from './ui/textarea';
 
 export default function TransactionDialog({ open, onOpenChange, transaction, type, onSuccess }) {
   const [categories, setCategories] = useState([]);
+  const [cards, setCards] = useState([]);
   const [formData, setFormData] = useState({
     type: type || 'expense',
     amount: '',
@@ -16,12 +17,14 @@ export default function TransactionDialog({ open, onOpenChange, transaction, typ
     description: '',
     category_id: '',
     payment_method: 'pix',
+    card_id: '',
+    installments: 1,
     notes: '',
   });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadCategories();
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -33,6 +36,8 @@ export default function TransactionDialog({ open, onOpenChange, transaction, typ
         description: transaction.description,
         category_id: transaction.category_id || '',
         payment_method: transaction.payment_method,
+        card_id: transaction.card_id || '',
+        installments: transaction.installments || 1,
         notes: transaction.notes || '',
       });
     } else if (type) {
@@ -40,12 +45,16 @@ export default function TransactionDialog({ open, onOpenChange, transaction, typ
     }
   }, [transaction, type]);
 
-  const loadCategories = async () => {
+  const loadData = async () => {
     try {
-      const response = await axios.get(`${API}/categories`);
-      setCategories(response.data);
+      const [categoriesRes, cardsRes] = await Promise.all([
+        axios.get(`${API}/categories`),
+        axios.get(`${API}/cards?active_only=true`)
+      ]);
+      setCategories(categoriesRes.data);
+      setCards(cardsRes.data);
     } catch (error) {
-      console.error('Error loading categories:', error);
+      console.error('Error loading data:', error);
     }
   };
 
