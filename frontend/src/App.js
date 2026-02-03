@@ -40,7 +40,7 @@ function Navigation() {
                 className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-colors ${
                   location.pathname === item.path
                     ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
+                    : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'
                 }`}
               >
                 <item.icon className="w-4 h-4" />
