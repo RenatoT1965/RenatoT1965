@@ -60,16 +60,9 @@ export default function Cards() {
     return new Date(dateStr).toLocaleDateString('pt-BR');
   };
 
-  const getBrandColor = (brand) => {
-    const colors = {
-      visa: 'bg-blue-600',
-      mastercard: 'bg-red-600',
-      elo: 'bg-yellow-600',
-      amex: 'bg-blue-700',
-      hipercard: 'bg-orange-600',
-      other: 'bg-slate-600'
-    };
-    return colors[brand] || colors.other;
+  const getBrandColor = (cardName) => {
+    const bankColors = getBankColor(cardName);
+    return `bg-gradient-to-br ${bankColors.gradient}`;
   };
 
   if (loading) {
