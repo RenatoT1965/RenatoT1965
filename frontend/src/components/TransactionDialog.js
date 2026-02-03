@@ -87,6 +87,8 @@ export default function TransactionDialog({ open, onOpenChange, transaction, typ
         description: '',
         category_id: '',
         payment_method: 'pix',
+        card_id: '',
+        installments: 1,
         notes: '',
       });
     } catch (error) {
