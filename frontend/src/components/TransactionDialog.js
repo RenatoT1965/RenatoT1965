@@ -90,11 +90,14 @@ export default function TransactionDialog({ open, onOpenChange, transaction, typ
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]" data-testid="transaction-dialog">
+      <DialogContent className="sm:max-w-[500px]" data-testid="transaction-dialog" aria-describedby="transaction-dialog-description">
         <DialogHeader>
           <DialogTitle className="text-2xl font-heading">
             {transaction?.id ? 'Editar Lançamento' : 'Novo Lançamento'}
           </DialogTitle>
+          <p id="transaction-dialog-description" className="sr-only">
+            Formulário para criar ou editar um lançamento financeiro
+          </p>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
