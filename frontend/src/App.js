@@ -6,7 +6,10 @@ import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import Budgets from './pages/Budgets';
 import Charts from './pages/Charts';
-import { LayoutDashboard, Receipt, Target, BarChart3, Menu, X } from 'lucide-react';
+import Cards from './pages/Cards';
+import Predictions from './pages/Predictions';
+import NotificationBell from './components/NotificationBell';
+import { LayoutDashboard, Receipt, Target, BarChart3, CreditCard, TrendingUp, Menu, X } from 'lucide-react';
 import './App.css';
 
 function Navigation() {
