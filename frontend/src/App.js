@@ -1,51 +1,133 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import axios from 'axios';
+import { Toaster, toast } from 'sonner';
+import Dashboard from './pages/Dashboard';
+import Transactions from './pages/Transactions';
+import Budgets from './pages/Budgets';
+import Charts from './pages/Charts';
+import { LayoutDashboard, Receipt, Target, BarChart3, Menu, X } from 'lucide-react';
+import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+export { API, axios, toast };
 
+function Navigation() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  const navItems = [
+    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/transactions', icon: Receipt, label: 'Lançamentos' },
+    { path: '/budgets', icon: Target, label: 'Metas' },
+    { path: '/charts', icon: BarChart3, label: 'Gráficos' },
+  ];
+
+  return (
+    <nav className="bg-white border-b border-border sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <span className="text-white font-heading font-bold text-lg">O</span>
+            </div>
+            <h1 className="text-xl font-heading font-bold text-foreground">Organizze</h1>
+          </div>
+
+          <div className="hidden md:flex items-center gap-2">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                data-testid={`nav-${item.label.toLowerCase()}`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-colors ${
+                  location.pathname === item.path
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
+                }`}
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
+          <button
+            data-testid="mobile-menu-toggle"
+            className="md:hidden p-2 rounded-lg hover:bg-secondary"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+
+        {mobileMenuOpen && (
+          <div className="md:hidden py-4 space-y-2">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
+                  location.pathname === item.path
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
+                }`}
+              >
+                <item.icon className="w-5 h-5" />
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+}
+
+function App() {
   useEffect(() => {
-    helloWorldApi();
+    const initializeData = async () => {
+      try {
+        const categoriesResponse = await axios.get(`${API}/categories`);
+        if (categoriesResponse.data.length === 0) {
+          const defaultCategories = [
+            { name: 'Alimentação', color: '#EF4444' },
+            { name: 'Transporte', color: '#F59E0B' },
+            { name: 'Moradia', color: '#3B82F6' },
+            { name: 'Lazer', color: '#8B5CF6' },
+            { name: 'Saúde', color: '#10B981' },
+            { name: 'Educação', color: '#06B6D4' },
+            { name: 'Outros', color: '#6B7280' },
+          ];
+          
+          for (const cat of defaultCategories) {
+            await axios.post(`${API}/categories`, cat);
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing data:', error);
+      }
+    };
+
+    initializeData();
   }, []);
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
-
-function App() {
-  return (
-    <div className="App">
+    <div className="App min-h-screen bg-background">
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
+        <Navigation />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/transactions" element={<Transactions />} />
+            <Route path="/budgets" element={<Budgets />} />
+            <Route path="/charts" element={<Charts />} />
+          </Routes>
+        </main>
+        <Toaster position="top-right" richColors />
       </BrowserRouter>
     </div>
   );
