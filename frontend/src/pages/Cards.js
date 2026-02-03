@@ -4,6 +4,7 @@ import { Button } from '../components/ui/button';
 import { Plus, CreditCard as CreditCardIcon, TrendingUp, Calendar, AlertCircle } from 'lucide-react';
 import CardDialog from '../components/CardDialog';
 import { Progress } from '../components/ui/progress';
+import { getBankColor } from '../utils/bankColors';
 
 export default function Cards() {
   const [cards, setCards] = useState([]);
