@@ -141,6 +141,7 @@ function App() {
             <Route path="/predictions" element={<Predictions />} />
             <Route path="/charts" element={<Charts />} />
             <Route path="/ai-assistant" element={<AIAssistant />} />
+            <Route path="/pricing" element={<Pricing />} />
           </Routes>
         </main>
         <Toaster position="top-right" richColors />
