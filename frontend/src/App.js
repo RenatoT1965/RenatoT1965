@@ -10,7 +10,9 @@ import Cards from './pages/Cards';
 import Predictions from './pages/Predictions';
 import AIAssistant from './pages/AIAssistant';
 import BankImport from './pages/BankImport';
+import Pricing from './pages/Pricing';
 import NotificationBell from './components/NotificationBell';
+import PlanBadge from './components/PlanBadge';
 import { LayoutDashboard, Receipt, Target, BarChart3, CreditCard, TrendingUp, Sparkles, Upload, Menu, X } from 'lucide-react';
 import './App.css';
 
