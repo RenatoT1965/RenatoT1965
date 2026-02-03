@@ -1077,6 +1077,92 @@ async def get_chat_history(limit: int = 20):
     return {"history": history}
 
 # Bank File Import Endpoints
+from plan_manager import PlanManager, PLAN_LIMITS
+
+plan_manager = PlanManager(db)
+
+@api_router.get("/plans/current")
+async def get_current_plan():
+    """Get user's current plan and usage"""
+    plan = await plan_manager.get_user_plan()
+    return plan.model_dump()
+
+@api_router.get("/plans/available")
+async def get_available_plans():
+    """Get available plans and pricing"""
+    return {
+        "plans": [
+            {
+                "id": "free_trial",
+                "name": "Teste Grátis",
+                "price": 0.00,
+                "duration": "14 dias",
+                "features": [
+                    "✅ Transações ilimitadas",
+                    "✅ Cartões ilimitados",
+                    "✅ Assistente IA ilimitado",
+                    "✅ Importação de extratos",
+                    "✅ Previsões avançadas",
+                    "⏰ Por 14 dias"
+                ]
+            },
+            {
+                "id": "basic",
+                "name": "Básico",
+                "price": 15.00,
+                "duration": "mensal",
+                "features": [
+                    "📊 20 transações/mês",
+                    "💳 2 cartões",
+                    "🤖 10 mensagens IA/mês",
+                    "❌ Sem importação",
+                    "❌ Sem previsões avançadas"
+                ]
+            },
+            {
+                "id": "premium",
+                "name": "Premium",
+                "price": 35.90,
+                "duration": "mensal",
+                "popular": True,
+                "features": [
+                    "✅ Transações ilimitadas",
+                    "✅ Cartões ilimitados",
+                    "✅ Assistente IA ilimitado",
+                    "✅ Importação de extratos",
+                    "✅ Previsões avançadas",
+                    "✅ Suporte prioritário"
+                ]
+            }
+        ]
+    }
+
+@api_router.post("/plans/upgrade")
+async def upgrade_plan(plan_type: str):
+    """Upgrade to paid plan"""
+    if plan_type not in ["basic", "premium"]:
+        raise HTTPException(status_code=400, detail="Plano inválido")
+    
+    plan = await plan_manager.upgrade_plan("default_user", plan_type)
+    
+    # Create notification
+    notification = Notification(
+        type="card_sync",
+        title=f"Bem-vindo ao plano {plan_type.title()}!",
+        message=f"Seu plano foi atualizado com sucesso. Aproveite todas as funcionalidades!",
+        related_id=None
+    )
+    await db.notifications.insert_one(notification.model_dump())
+    
+    return {"success": True, "plan": plan.model_dump()}
+
+@api_router.get("/plans/check-limit/{resource}")
+async def check_resource_limit(resource: str):
+    """Check if user can use a resource"""
+    result = await plan_manager.check_limit("default_user", resource)
+    return result
+
+# Bank File Import Endpoints
 @api_router.post("/import/upload")
 async def upload_bank_file(
     file: UploadFile = File(...),
