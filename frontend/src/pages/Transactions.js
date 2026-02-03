@@ -178,7 +178,7 @@ export default function Transactions() {
                   <tr
                     key={transaction.id}
                     data-testid={`transaction-row-${transaction.id}`}
-                    className="border-b border-border hover:bg-secondary/30 transition-colors"
+                    className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
                   >
                     <td className="p-4">
                       <p className="font-medium">{transaction.description}</p>
