@@ -13,35 +13,17 @@ import BankImport from './pages/BankImport';
 import Pricing from './pages/Pricing';
 import Auth from './pages/Auth';
 import Profile from './pages/Profile';
+import EditProfile from './pages/EditProfile';
+import Onboarding from './pages/Onboarding';
 import NotificationBell from './components/NotificationBell';
 import PlanBadge from './components/PlanBadge';
-import { LayoutDashboard, Receipt, Target, BarChart3, CreditCard, TrendingUp, Sparkles, Upload, Menu, X, User, LogOut } from 'lucide-react';
+import { LayoutDashboard, Receipt, Target, BarChart3, CreditCard, TrendingUp, Sparkles, Upload, Menu, X, User } from 'lucide-react';
 import './App.css';
-
-// Protected Route wrapper
-function ProtectedRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth();
-  const location = useLocation();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
-  }
-
-  return children;
-}
 
 function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const navItems = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -166,9 +148,24 @@ function AppContent() {
     return <Auth />;
   }
 
+  // Onboarding page doesn't need navigation
+  if (location.pathname === '/onboarding') {
+    if (!isAuthenticated) {
+      return <Navigate to="/auth" replace />;
+    }
+    return <Onboarding />;
+  }
+
   // Redirect to auth if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Check if onboarding is needed (only for new users)
+  const onboardingCompleted = localStorage.getItem('onboarding_completed');
+  if (!onboardingCompleted && location.pathname === '/') {
+    // First time user - show onboarding
+    return <Navigate to="/onboarding" replace />;
   }
 
   return (
@@ -186,6 +183,7 @@ function AppContent() {
           <Route path="/ai-assistant" element={<AIAssistant />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/edit" element={<EditProfile />} />
         </Routes>
       </main>
       <Toaster position="top-right" richColors />
