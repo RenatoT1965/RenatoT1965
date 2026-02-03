@@ -1011,10 +1011,115 @@ async def update_settings(settings: Settings):
 # AI Assistant Endpoints
 from ai_assistant import FinancialAssistant
 from bank_file_processor import BankFileProcessor
-from fastapi import UploadFile, File
+from fastapi import UploadFile, File, Request, Header
+from auth import AuthManager, UserCreate, UserLogin
+from payments import PaymentManager, PLAN_PACKAGES
 
 assistant = FinancialAssistant(db)
 bank_processor = BankFileProcessor(db, os.environ.get('EMERGENT_LLM_KEY', ''))
+auth_manager = AuthManager(db)
+payment_manager = PaymentManager(db)
+
+# Authentication Endpoints
+@api_router.post("/auth/register")
+async def register(user_data: UserCreate):
+    """Register a new user"""
+    try:
+        result = await auth_manager.register(user_data)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Registration error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Erro ao criar conta")
+
+@api_router.post("/auth/login")
+async def login(login_data: UserLogin):
+    """Login user"""
+    try:
+        result = await auth_manager.login(login_data)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Erro ao fazer login")
+
+@api_router.get("/auth/me")
+async def get_current_user(authorization: str = Header(None)):
+    """Get current authenticated user"""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Token não fornecido")
+    
+    token = authorization.replace("Bearer ", "")
+    user = await auth_manager.get_current_user(token)
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+    
+    return user
+
+# Payment Endpoints
+@api_router.post("/payments/checkout")
+async def create_checkout(plan_id: str, request: Request):
+    """Create Stripe checkout session for plan upgrade"""
+    try:
+        # Get origin from request
+        origin = request.headers.get('origin') or str(request.base_url).rstrip('/')
+        
+        # For now, use default user (will be updated when auth is fully integrated)
+        user_id = "default_user"
+        
+        result = await payment_manager.create_checkout_session(
+            user_id=user_id,
+            plan_id=plan_id,
+            origin_url=origin
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Checkout error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Erro ao criar sessão de pagamento")
+
+@api_router.get("/payments/status/{session_id}")
+async def get_payment_status(session_id: str, request: Request):
+    """Get checkout session status and process payment if complete"""
+    try:
+        origin = request.headers.get('origin') or str(request.base_url).rstrip('/')
+        
+        status = await payment_manager.get_checkout_status(session_id, origin)
+        
+        # If payment is successful and not already processed
+        if status.get('payment_status') == 'paid' and not status.get('already_processed'):
+            plan_id = status.get('plan_id') or status.get('metadata', {}).get('plan_id')
+            user_id = status.get('metadata', {}).get('user_id', 'default_user')
+            
+            if plan_id:
+                await payment_manager.handle_successful_payment(session_id, user_id, plan_id)
+                
+                # Also update plan_manager
+                await plan_manager.upgrade_plan(user_id, plan_id)
+        
+        return status
+    except Exception as e:
+        logger.error(f"Payment status error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Erro ao verificar status do pagamento")
+
+@api_router.post("/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhooks"""
+    try:
+        body = await request.body()
+        signature = request.headers.get("Stripe-Signature")
+        
+        # Log webhook received
+        logger.info(f"Stripe webhook received")
+        
+        return {"status": "received"}
+    except Exception as e:
+        logger.error(f"Webhook error: {str(e)}")
+        return {"status": "error"}
 
 class ChatMessage(BaseModel):
     message: str
