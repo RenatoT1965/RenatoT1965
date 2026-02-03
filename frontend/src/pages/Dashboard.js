@@ -60,7 +60,7 @@ export default function Dashboard() {
           <Button
             data-testid="quick-add-income-btn"
             onClick={() => openDialog('income')}
-            className="bg-accent hover:bg-accent/90 text-white rounded-full px-6 py-6 font-medium shadow-lg"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-6 py-6 font-medium shadow-lg"
           >
             <Plus className="w-4 h-4 mr-2" />
             Receita
