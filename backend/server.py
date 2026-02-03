@@ -216,7 +216,7 @@ def get_current_invoice_period(closing_day: int):
 # Routes
 @api_router.get("/")
 async def root():
-    return {"message": "Organizze API"}
+    return {"message": "FinanceFlow API"}
 
 # Transactions
 @api_router.post("/transactions", response_model=Transaction)
