@@ -1002,8 +1002,11 @@ async def update_settings(settings: Settings):
 
 # AI Assistant Endpoints
 from ai_assistant import FinancialAssistant
+from bank_file_processor import BankFileProcessor
+from fastapi import UploadFile, File
 
 assistant = FinancialAssistant(db)
+bank_processor = BankFileProcessor(db, os.environ.get('EMERGENT_LLM_KEY', ''))
 
 class ChatMessage(BaseModel):
     message: str
