@@ -162,15 +162,15 @@ export default function Transactions() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-secondary/50 border-b border-border">
+              <thead className="bg-slate-100 border-b-2 border-slate-300">
                 <tr>
-                  <th className="text-left p-4 font-semibold">Descrição</th>
-                  <th className="text-left p-4 font-semibold">Tipo</th>
-                  <th className="text-left p-4 font-semibold">Categoria</th>
-                  <th className="text-left p-4 font-semibold">Meio de Pgto</th>
-                  <th className="text-right p-4 font-semibold">Valor</th>
-                  <th className="text-left p-4 font-semibold">Data</th>
-                  <th className="text-right p-4 font-semibold">Ações</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Descrição</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Tipo</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Categoria</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Meio de Pgto</th>
+                  <th className="text-right p-4 font-semibold text-slate-700">Valor</th>
+                  <th className="text-left p-4 font-semibold text-slate-700">Data</th>
+                  <th className="text-right p-4 font-semibold text-slate-700">Ações</th>
                 </tr>
               </thead>
               <tbody>
