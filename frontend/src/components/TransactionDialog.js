@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { API, axios, toast } from '../App';
+import { API, axios, toast } from '../config';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
