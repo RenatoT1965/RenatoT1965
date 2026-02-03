@@ -90,11 +90,14 @@ export default function BudgetDialog({ open, onOpenChange, budget, categories, o
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]" data-testid="budget-dialog">
+      <DialogContent className="sm:max-w-[500px]" data-testid="budget-dialog" aria-describedby="budget-dialog-description">
         <DialogHeader>
           <DialogTitle className="text-2xl font-heading">
             {budget?.id ? 'Editar Meta' : 'Nova Meta'}
           </DialogTitle>
+          <p id="budget-dialog-description" className="sr-only">
+            Formulário para criar ou editar uma meta de gastos
+          </p>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
