@@ -23,6 +23,10 @@ export default function Charts() {
     loadData();
   }, [granularity, filters]);
 
+  useEffect(() => {
+    loadPieData();
+  }, [pieType, pieGroupBy]);
+
   const loadData = async () => {
     try {
       const [chartResponse, categoriesResponse] = await Promise.all([
